@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 1 · Networks — 303 Superheroes</title>
+<meta name="description" content="Degrees, distributions and components in the Wikipedia link network of 303 Marvel characters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E3E6E3; --card:#F8F9F7; --ink:#16224C; --ink-soft:#4A5878;
+    --muted:#8992A3; --rule:#C6CBC8; --red:#D22B2B; --measure:66ch;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:"Newsreader",Georgia,serif;font-size:19px;line-height:1.66}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  .col{max-width:var(--measure)}
+
+  .topbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+          padding:22px 0 0;font-size:.8rem;color:var(--ink-soft)}
+  .topbar a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+  .topbar a:hover{color:var(--red)}
+
+  h1{font-family:"Archivo Black",sans-serif;font-weight:400;
+     font-size:clamp(2.4rem,7vw,4.6rem);line-height:.94;letter-spacing:-.03em;margin:34px 0 0}
+  .standfirst{font-size:clamp(1.1rem,2.2vw,1.36rem);font-style:italic;color:var(--ink-soft);
+              max-width:44ch;margin:.6em 0 0;line-height:1.4}
+  .byline{margin:22px 0 0;font-size:.86rem;color:var(--muted)}
+
+  h2{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.6rem;
+     letter-spacing:-.015em;margin:0 0 4px}
+  h3{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.02rem;margin:34px 0 6px}
+  section{margin:64px 0 0;padding-top:26px;border-top:2px solid var(--ink)}
+  .kicker{font-size:.84rem;color:var(--red);margin:0 0 14px;font-family:"Archivo Black",sans-serif}
+  p{max-width:var(--measure)}
+  ul,ol{max-width:var(--measure);padding-left:1.15em}
+  li{margin:.35em 0}
+  strong{font-weight:500;color:var(--ink)}
+
+  figure{margin:30px 0 0;background:var(--card);border:1px solid var(--rule);
+         border-radius:2px;padding:16px 16px 6px}
+  figure img{width:100%;height:auto;display:block}
+  figcaption{font-size:.86rem;color:var(--ink-soft);padding:12px 4px 10px;line-height:1.5;max-width:78ch}
+  .figgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+  .figgrid figure{margin:0}
+
+  table{border-collapse:collapse;width:100%;max-width:640px;margin:26px 0 0;font-size:.94rem}
+  th,td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--rule)}
+  th{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:.78rem;color:var(--ink)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0}
+  tr td:first-child{color:var(--ink)}
+
+  .callout{background:var(--card);border-left:3px solid var(--red);padding:18px 22px;
+           margin:30px 0 0;max-width:var(--measure)}
+  .callout p{margin:0}
+  .callout p + p{margin-top:.8em}
+
+  pre{background:var(--card);border:1px solid var(--rule);border-radius:2px;
+      padding:16px 18px;overflow-x:auto;font-size:.84rem;line-height:1.55;
+      max-width:var(--measure);font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:22px 0 0;max-width:74ch}
+  .chip{font-size:.8rem;padding:5px 10px;border:1px solid var(--rule);border-radius:2px;
+        color:var(--ink-soft);background:var(--card)}
+
+  footer{margin:80px 0 0;border-top:1px solid var(--rule);padding:26px 0 70px;
+         font-size:.88rem;color:var(--ink-soft)}
+  footer a{color:var(--ink)}
+  footer a:hover{color:var(--red)}
+
+  @media (max-width:760px){
+    body{font-size:18px}
+    .wrap{padding:0 18px}
+    .figgrid{grid-template-columns:1fr}
+    section{margin-top:48px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span><a href="../../">← 303 Superheroes</a></span>
+    <span>Week 1 · Networks</span>
+  </div>
+
+  <h1>Who gets talked<br>about, and who<br>does the talking</h1>
+  <p class="standfirst">Our first pass at the Marvel link network: 303 characters, 1,784 arrows, and one small island of nine heroes nobody in the main universe has ever mentioned.</p>
+  <p class="byline">02805 Social Graphs and Interactions · DTU · week 1 · GROUP NAME</p>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">What this page is</p>
+    <h2>The plan</h2>
+    <p>The course handed us a frozen network and a set of week-1 tools. This post is what we got when we pointed the second at the first.</p>
+    <p>We start by describing the network and being explicit about what somebody decided a node and an edge would be, because that decision is doing more work than anything we compute afterwards. Then the procedure: how we loaded it and how we checked the load. Then the substance — four degree distributions, a look at who the hubs are and why in-degree and out-degree pick out completely different characters, a drawing of the whole thing, and finally the components, which turned out to be the most interesting part of the week.</p>
+    <p>Every number below came out of our own notebook. Where the course page publishes the same number, we say so, because agreeing with a known answer is the only cheap way we have to tell whether our pipeline is right.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Overview</p>
+    <h2>What the network is</h2>
+    <p>The nodes are the 303 characters in Wikipedia's <em>Category:Marvel Comics superheroes</em>. There is an edge from A to B when the running text of A's article links to B's article. That gives a <strong>directed, unweighted, simple</strong> network — an arrow one way says nothing at all about the other way.</p>
+    <p>Two decisions in the snapshot are worth stating out loud. Edges were harvested from article text rather than from Wikipedia's link index, which throws away the links contributed by shared navigation boxes; had they been kept, every Avenger would be adjacent to every other Avenger by templating artefact rather than because anyone's article mentions anyone. And redirects were resolved at both ends, so a link to <em>Spidey</em> and a link to <em>Spider-Man</em> land on the same node. Different choices would have produced a genuinely different network, and most of what follows would change with them.</p>
+
+    <table>
+      <tr><th>Quantity</th><th style="text-align:right">Value</th></tr>
+      <tr><td>Nodes <em>n</em></td><td class="num">303</td></tr>
+      <tr><td>Directed edges</td><td class="num">1,784</td></tr>
+      <tr><td>Undirected pairs <em>m</em></td><td class="num">1,434</td></tr>
+      <tr><td>Reciprocated pairs</td><td class="num">350</td></tr>
+      <tr><td>Average degree ⟨k⟩ = 2m/n</td><td class="num">9.47</td></tr>
+      <tr><td>Average in- = out-degree</td><td class="num">5.89</td></tr>
+      <tr><td>Density 2m/[n(n−1)]</td><td class="num">3.1%</td></tr>
+      <tr><td>Connected components</td><td class="num">19</td></tr>
+      <tr><td>Giant component</td><td class="num">277</td></tr>
+      <tr><td>Isolates</td><td class="num">17</td></tr>
+    </table>
+
+    <p style="margin-top:26px">The density is the number to sit with. Of the 45,753 pairs of characters that could be connected, 1,434 are — about 3%. That is dense as real networks go, and still means 97% of the possible links don't exist. Everything interesting is in which 3% made it.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Procedure</p>
+    <h2>What we did</h2>
+    <p>Loading a network is where the first silent mistake usually happens, so this is the one step we were careful about. Building the graph from the edge list alone gives 286 nodes: 17 characters appear in neither column, and they vanish without an error message. We add the full node roster first.</p>
+
+<pre>nodes = pd.read_csv("week1_nodes.tsv", sep="\t", comment="#", quoting=3)
+edges = pd.read_csv("week1_edges.tsv", sep="\t", comment="#",
+                    names=["source", "target"])
+
+G = nx.DiGraph()
+G.add_nodes_from(nodes.node_id)      # all 303 first
+G.add_edges_from(edges.itertuples(index=False))</pre>
+
+    <p>Then we checked the load against numbers the course publishes independently: 303 nodes and 1,784 directed edges, collapsing to 1,434 undirected pairs, ⟨k⟩ ≈ 9.47, density ≈ 3.1%, one component of 277, 17 isolates. All six matched. The two edge counts differ because 350 pairs link in both directions; each of those is two arrows but only one pair, and 1,784 − 350 = 1,434.</p>
+    <p>Everything after that is degree bookkeeping and plotting, which the agent wrote and we read. The one place we made it show its work was the binning scheme, where the normalisation is easy to get wrong and the error looks like a result rather than a bug. Our check: where the bins are width 1, the binned curve has to sit exactly on the raw points. It does, to machine precision. If it hadn't, the culprit would almost certainly have been dividing by the wrong width.</p>
+
+    <div class="chips">
+      <span class="chip">Python 3</span><span class="chip">NetworkX 3.6</span>
+      <span class="chip">pandas</span><span class="chip">matplotlib</span>
+      <span class="chip">Jupyter</span><span class="chip">agentic coding tool</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Degree distributions</p>
+    <h2>Four plots, two axes, one shape</h2>
+    <p>A single degree is a number; all of them together is the portrait. We want to know whether this network has the heavy tail that turns up everywhere in network science, and whether the answer differs for links received and links made. So: in-degree and out-degree, each on linear and on log–log axes. All four plot <em>k</em>+1 rather than <em>k</em>, because a log axis cannot show zero and 17 characters have no links at all — shifting keeps them in the picture instead of quietly deleting them.</p>
+
+    <div class="figgrid">
+      <figure>
+        <img src="figures/in_linear.svg" alt="In-degree distribution on linear axes: a steep drop from the left with a long flat stretch to the right.">
+        <figcaption>In-degree, linear axes. Almost everything is crushed into the first few columns.</figcaption>
+      </figure>
+      <figure>
+        <img src="figures/in_loglog.svg" alt="In-degree distribution on log-log axes, with a binned curve overlaid, showing a roughly straight decline out to k=106.">
+        <figcaption>In-degree, log–log, with the binned curve overlaid. The line runs a long way right.</figcaption>
+      </figure>
+      <figure>
+        <img src="figures/out_linear.svg" alt="Out-degree distribution on linear axes, dropping steeply and ending near 28.">
+        <figcaption>Out-degree, linear axes. Same crush, but the axis stops four times earlier.</figcaption>
+      </figure>
+      <figure>
+        <img src="figures/out_loglog.svg" alt="Out-degree distribution on log-log axes with binned overlay; the tail ends abruptly around 28.">
+        <figcaption>Out-degree, log–log. The tail runs out of road at 28.</figcaption>
+      </figure>
+    </div>
+
+    <h3>What the plots show</h3>
+    <p>The linear panels are almost useless, and that is the lesson rather than a complaint. Both look like a spike at the left and a flat line, because the rare high-degree nodes are exactly that — rare — and on a linear <em>y</em>-axis a probability of 1/303 is indistinguishable from zero. The information is there; the axes hide it.</p>
+    <p>On log–log the in-degree straightens out into something close to a line and keeps going to Spider-Man at <em>k</em> = 106. The out-degree does not get anywhere near that: the largest is Betsy Braddock's 28. The two curves have the same left-hand shape and completely different right-hand ends.</p>
+    <p>The binned overlay is worth reading carefully. Out in the tail every raw count is 0 or 1, so the raw dots turn into a scatter of points all sitting at the same height, <em>P</em> = 1/303, with invisible gaps between them where the count is zero. Binning averages over widening ranges and pulls a trend out of that. It did not invent the range — the extra reach was always in the data, it just could not be seen with one character per degree value and nobody at the neighbouring degrees. What binning does is make the emptiness countable instead of invisible.</p>
+
+    <div class="callout">
+      <p><strong>The bit we checked by hand.</strong> Our bins are width 1 for <em>k</em>+1 up to 7, then doubling: [8,16), [16,32), [32,64), [64,128). Each bin's count is divided by its width so a wide bin doesn't look popular for being wide, and each is drawn at the geometric mean of the integers it covers rather than the arithmetic middle, which on a log axis would sit visibly right of centre.</p>
+      <p>The test is that the width-1 bins must reproduce the raw values exactly, since averaging one integer with itself is not an average. Ours agree to twelve decimal places. This is the sort of thing that would have shipped silently wrong: a plot with a broken normalisation still looks like a plot.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Hubs</p>
+    <h2>Being famous and being talkative are different jobs</h2>
+    <p>If the two distributions have different shapes, the natural next question is whether they have different occupants. They do — almost entirely.</p>
+
+    <table>
+      <tr><th>Most linked to</th><th style="text-align:right">in</th><th style="text-align:right">out</th></tr>
+      <tr><td>Spider-Man</td><td class="num">106</td><td class="num">9</td></tr>
+      <tr><td>Hulk</td><td class="num">64</td><td class="num">10</td></tr>
+      <tr><td>Wolverine</td><td class="num">60</td><td class="num">17</td></tr>
+      <tr><td>Doctor Strange</td><td class="num">50</td><td class="num">17</td></tr>
+      <tr><td>Deadpool</td><td class="num">33</td><td class="num">19</td></tr>
+    </table>
+
+    <table style="margin-top:34px">
+      <tr><th>Links out most</th><th style="text-align:right">out</th><th style="text-align:right">in</th></tr>
+      <tr><td>Betsy Braddock</td><td class="num">28</td><td class="num">7</td></tr>
+      <tr><td>Cloak and Dagger</td><td class="num">24</td><td class="num">11</td></tr>
+      <tr><td>Adam Warlock</td><td class="num">22</td><td class="num">8</td></tr>
+      <tr><td>Venom</td><td class="num">21</td><td class="num">17</td></tr>
+      <tr><td>She-Hulk</td><td class="num">20</td><td class="num">29</td></tr>
+    </table>
+
+    <figure>
+      <img src="figures/in_vs_out.svg" alt="Scatter of in-degree against out-degree for all 303 characters, with Spider-Man far above the diagonal and Betsy Braddock far to the right of it.">
+      <figcaption>Every character placed by how many links it makes against how many it receives. The dashed line is where the two would be equal. Almost nobody is on it.</figcaption>
+    </figure>
+
+    <h3>Why the two lists barely overlap</h3>
+    <p>The asymmetry comes from who is allowed to create each kind of edge. An <strong>in-link is conferred</strong>: it exists because the editors of some other article decided this character was worth mentioning. Nothing caps how many other articles can reach that decision, and the more famous a character already is, the more likely the next writer is to reach it. There are 302 other articles that could point at Spider-Man, and 106 of them do — more than a third of the category.</p>
+    <p>An <strong>out-link is authored</strong>: somebody has to sit down and write it into this specific page. That is bounded by how long the article is and how many other characters its plot actually touches. Even a very long, very connected article runs out of relevant names in the twenties. So in-degree measures something like renown, while out-degree measures something much more like article length and narrative entanglement.</p>
+    <p>The scatter makes the consequence visible. Spider-Man sits far above the diagonal — massively cited, barely citing. Betsy Braddock sits far to the right of it: her article works its way through most of the X-Men without many articles working their way back to her. The correlation between the two is only about 0.5, which is high enough that being connected in one direction helps in the other, and low enough that using one as a proxy for the other would be a mistake.</p>
+    <p>This is also why we would refuse to collapse the network to undirected for a question about importance. The undirected degree adds these two quantities together, and they are produced by two different mechanisms — it mixes a measure of fame with a measure of verbosity and reports the sum.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">The drawing</p>
+    <h2>Seeing all 303 at once</h2>
+    <p>Before measuring anything else we wanted to look at it. The giant component is drawn with a force-directed layout, which pulls connected nodes together and pushes everything else apart; node size is in-degree, and the five biggest hubs are marked.</p>
+    <p>The isolates and the small island are <em>not</em> laid out by the algorithm — a force layout has nothing to say about a node with no edges, so it would scatter them arbitrarily and invite you to read meaning into where they landed. We placed them deliberately instead. That grouping is our editorial decision, not a result.</p>
+
+    <figure>
+      <img src="figures/network.svg" alt="The Marvel link network: a dense central blob of 277 characters with five labelled hubs, a separate nine-node island at the upper right, and seventeen unconnected circles below it.">
+      <figcaption>All 303 characters. The 277-node giant component in the middle, the nine-character island top right, and the 17 isolates as hollow circles. Positions inside the blob come from a physics simulation and mean less than they look like they do.</figcaption>
+    </figure>
+
+    <p>Two things are honest here and one is not. The hubs really are central — that is the layout doing its job, and it agrees with the degree numbers we computed separately. The three-part split really is structural. But the middle is a hairball: 277 nodes and 1,400-odd edges at this size is past the point where you can trace an individual connection, and two nodes sitting next to each other in there may be neighbours, may be two hops apart, or may just have been pushed there by nodes you can't see. We would not conclude anything from proximity inside the blob that we hadn't also computed.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Components</p>
+    <h2>The nine heroes nobody mentions</h2>
+    <p>The network breaks into 19 components: one of 277, one of 9, and seventeen of one. The 277 is unremarkable — most real networks have a giant component, and 91% is a normal share. The nine is the find of the week.</p>
+
+    <figure>
+      <img src="figures/morituri.svg" alt="The nine-node island drawn on its own: Radian, Blackthorn, Vyking, Snapdragon, Scatterbrain, Scaredycat, Toxyn, Backhand and Shear, connected to each other in a small web.">
+      <figcaption>The island, on its own. Nine characters, well connected to each other, connected to nothing else.</figcaption>
+    </figure>
+
+    <p>They are Radian, Blackthorn, Vyking, Snapdragon, Scatterbrain, Scaredycat, Toxyn, Backhand and Shear — the cast of <em>Strikeforce: Morituri</em>, a Marvel series that ran from 1986 to 1989. Three of them carry "(Morituri)" in the page title, which is what made us look them up.</p>
+    <p>The structural reason they are cut off is the interesting part: the series is set on Earth-1287, a continuity separate from the main Marvel universe, with an alien invasion and a superpower process that kills everyone who undergoes it within a year. Its characters never meet Spider-Man, so no mainstream article has any occasion to link them, and their own articles have nobody to link but each other. They are dense internally and invisible externally.</p>
+    <p>That is a satisfying result because the network structure came first. We did not know the series existed; we found a disconnected clique and went and asked why, and the answer was a real editorial fact about the source material. A component boundary here is a continuity boundary.</p>
+
+    <h3>And the 17 with nothing at all</h3>
+    <p>The isolates are a different story, and reading their names makes the pattern obvious: Baymax, Super Rabbit, Breeze Barton, Solarman, Happy Sam Sawyer, Miracleman, Captain Midlands, Bird-Brain, Illuminator, Yo-Yo Rodriguez, Father Time, Charcoal, Black Fox, Brain Drain, Ogre, Hellfire, Sean and Chris.</p>
+    <p>Most are obscure, several are from the 1940s Timely Comics era, one is from a film rather than the comics, and one — Miracleman — is a British character Marvel acquired decades after his creation. What they share is not being unpopular; Baymax was in a hit animated film. It is that they are unconnected <em>within this category</em>. Baymax's article surely links to plenty of Wikipedia pages, just not to any of the other 302 superheroes here.</p>
+    <p>Which is the point about representation. An isolate in this network is not a character nobody cares about. It is a character whose links all leave the boundary we drew. Change the boundary — add Marvel films, or villains, or teams — and most of these 17 would stop being isolates immediately. The zero is a property of our node set, not of the character.</p>
+
+    <div class="callout">
+      <p><strong>A number that surprised us.</strong> 58 characters have in-degree zero but only 20 have out-degree zero. So there are far more characters nobody mentions than characters who mention nobody — which fits the story above: writing an article almost forces you to link somewhere, while being linked to requires someone else to bother.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Wrapping up</p>
+    <h2>What we'd chase next</h2>
+    <p>The thing we keep coming back to is that the sharpest result this week came from the smallest structure. The degree distribution told us the network is heavy-tailed, which is true of nearly every network anyone has ever measured and therefore not very surprising. The nine-node island told us something specific about how Wikipedia's editors treat a discontinued 1980s series, and we would never have gone looking for it.</p>
+    <p>Open questions we're taking into week 2: whether that in-degree tail survives being tested properly rather than eyeballed off a log–log plot, and whether the hub ranking is really about fame or partly about article age — the characters at the top have all had Wikipedia articles for twenty years, and an old article has had longer to collect in-links from every article written since.</p>
+  </section>
+
+  <footer>
+    <p>Data: the 02805 week-1 snapshot of Wikipedia's <a href="https://en.wikipedia.org/wiki/Category:Marvel_Comics_superheroes">Category:Marvel Comics superheroes</a>, frozen 26 August 2026. Article text and titles from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Details of <em>Strikeforce: Morituri</em> checked against the characters' own Wikipedia articles.</p>
+    <p><a href="../../">← Back to all weeks</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
