@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 2 · Models &amp; null models — 303 Superheroes</title>
+<meta name="description" content="We shuffle-test every number we published in week 1. Three of them turn out not to be findings at all.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E3E6E3; --card:#F8F9F7; --ink:#16224C; --ink-soft:#4A5878;
+    --muted:#8992A3; --rule:#C6CBC8; --red:#D22B2B; --measure:66ch;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:"Newsreader",Georgia,serif;font-size:19px;line-height:1.66}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+  .topbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+          padding:22px 0 0;font-size:.8rem;color:var(--ink-soft)}
+  .topbar a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+  .topbar a:hover{color:var(--red)}
+
+  h1{font-family:"Archivo Black",sans-serif;font-weight:400;
+     font-size:clamp(2.4rem,7vw,4.6rem);line-height:.94;letter-spacing:-.03em;margin:34px 0 0}
+  .standfirst{font-size:clamp(1.1rem,2.2vw,1.36rem);font-style:italic;color:var(--ink-soft);
+              max-width:46ch;margin:.6em 0 0;line-height:1.4}
+  .byline{margin:22px 0 0;font-size:.86rem;color:var(--muted)}
+
+  h2{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.6rem;
+     letter-spacing:-.015em;margin:0 0 4px}
+  h3{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.02rem;margin:34px 0 6px}
+  section{margin:64px 0 0;padding-top:26px;border-top:2px solid var(--ink)}
+  .kicker{font-size:.84rem;color:var(--red);margin:0 0 14px;font-family:"Archivo Black",sans-serif}
+  p{max-width:var(--measure)}
+  ul,ol{max-width:var(--measure);padding-left:1.15em}
+  li{margin:.4em 0}
+  strong{font-weight:500;color:var(--ink)}
+
+  figure{margin:30px 0 0;background:var(--card);border:1px solid var(--rule);
+         border-radius:2px;padding:16px 16px 6px}
+  figure img{width:100%;height:auto;display:block}
+  figcaption{font-size:.86rem;color:var(--ink-soft);padding:12px 4px 10px;line-height:1.5;max-width:80ch}
+  figure.wide{margin-left:calc(-1 * min(6vw, 90px));margin-right:calc(-1 * min(6vw, 90px))}
+
+  table{border-collapse:collapse;width:100%;margin:26px 0 0;font-size:.9rem}
+  th,td{text-align:left;padding:9px 14px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:.74rem;color:var(--ink)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:14px;white-space:nowrap}
+  .tag{font-family:"Archivo Black",sans-serif;font-size:.66rem;padding:3px 7px;border-radius:2px;
+       white-space:nowrap;letter-spacing:.02em}
+  .t-live{background:var(--ink);color:var(--card)}
+  .t-dead{background:#DCDFDD;color:var(--ink-soft)}
+  .t-free{background:var(--red);color:#fff}
+  .scroll{overflow-x:auto}
+
+  .callout{background:var(--card);border-left:3px solid var(--red);padding:18px 22px;
+           margin:30px 0 0;max-width:var(--measure)}
+  .callout p{margin:0}
+  .callout p + p{margin-top:.8em}
+
+  pre{background:var(--card);border:1px solid var(--rule);border-radius:2px;
+      padding:16px 18px;overflow-x:auto;font-size:.83rem;line-height:1.55;
+      max-width:var(--measure);font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:22px 0 0;max-width:74ch}
+  .chip{font-size:.8rem;padding:5px 10px;border:1px solid var(--rule);border-radius:2px;
+        color:var(--ink-soft);background:var(--card)}
+
+  footer{margin:80px 0 0;border-top:1px solid var(--rule);padding:26px 0 70px;
+         font-size:.88rem;color:var(--ink-soft)}
+  footer a{color:var(--ink)}
+  footer a:hover{color:var(--red)}
+
+  @media (max-width:760px){
+    body{font-size:18px}
+    .wrap{padding:0 18px}
+    section{margin-top:48px}
+    figure.wide{margin-left:0;margin-right:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span><a href="../../">← 303 Superheroes</a></span>
+    <span>Week 2 · Models &amp; null models</span>
+  </div>
+
+  <h1>We audited<br>our own post</h1>
+  <p class="standfirst">Last week we published eleven numbers about the Marvel network. This week we asked what each one would have been if nothing interesting were going on. Three of them turned out not to be findings at all.</p>
+  <p class="byline">02805 Social Graphs and Interactions · DTU · week 2 · GROUP NAME</p>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">The problem</p>
+    <h2>A number is not a finding</h2>
+    <p>Here is a sentence from our own week 1 post: <em>"the Marvel network has an average clustering coefficient of 0.32."</em> It is true. We checked it twice. And on its own it says almost nothing, because there is no answer to the obvious follow-up — <strong>compared to what?</strong></p>
+    <p>0.32 is only interesting if something else would have given us less. Which something else? That choice is not a detail; it is the entire claim. Compare against a network wired purely at random and 0.32 looks enormous. Compare against a network that keeps every character's exact number of links and only scrambles who those links go to, and it looks about twice as big as it should be. Compare against a rearrangement that also preserves the triangles and it looks like nothing at all. Same measurement, three different conclusions, and the only thing that changed was the baseline.</p>
+    <p>So this week we are not measuring anything new. We are going back through everything we published in week 1 and asking, of each number: <strong>would a network with no structure beyond the obvious have given us this anyway?</strong> Some of our findings survive that question. Some do not. And a few, it turns out, could never have failed — they were pinned in place by facts we had already assumed, which means we reported them as discoveries when they were arithmetic.</p>
+    <p>That last category is the one we care about most, because nothing in the numbers themselves tells you which of the three you are looking at.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Method</p>
+    <h2>Two baselines and a histogram</h2>
+    <p>A null model is a way of generating networks that keep the parts of the real one you are willing to treat as given, and randomise everything else. Measure your quantity on a few hundred of them and you get a distribution — the range of values "nothing interesting" produces. Then you look at where the real network falls in that pile.</p>
+
+    <h3>The two nulls</h3>
+    <p><strong>G(n, m) — Erdős–Rényi.</strong> Keep the number of characters and the number of links; wire them together at random. This baseline knows almost nothing about Marvel. In particular it has no hubs: the biggest node it produces has around 20 links where Spider-Man has 106.</p>
+    <p><strong>The degree-preserving shuffle.</strong> Start from the real network and repeatedly pick two links A–B and C–D, then rewire them into A–D and C–B. Every swap leaves all four characters with exactly the number of links they started with, so after thousands of swaps every node's degree is untouched and only <em>who links to whom</em> has been scrambled. This baseline knows that Spider-Man has 106 links and that 58 characters have almost none — it simply does not know which links went where.</p>
+    <p>The difference between the two is the whole method. If a quantity is extreme against G(n, m) but ordinary against the shuffle, then the degree sequence explains it and there is nothing further to say. If it stays extreme against the shuffle, the network is doing something its degrees do not account for.</p>
+
+    <h3>What we ran</h3>
+    <p>We work on the undirected giant component — 277 characters, 1,421 links, ⟨k⟩ = 10.26 — which is what the course's own numbers refer to. 300 networks from each null. For every quantity we report the null mean, its standard deviation, and the <em>z</em>-score: how many standard deviations out the real value sits.</p>
+
+<pre>sw = GC.copy()
+nx.double_edge_swap(sw, nswap=5*m, max_tries=100*m, seed=s)
+assert sorted(d for _,d in sw.degree()) == sorted(d for _,d in GC.degree())</pre>
+
+    <p>Two things we had to build rather than call. NetworkX's <code>double_edge_swap</code> only works on undirected graphs, so for reciprocity — which is a directed question — we wrote the directed version ourselves: pick arrows A→B and C→D, rewire to A→D and C→B, which preserves every character's in-degree <em>and</em> out-degree separately. We assert that both sequences are unchanged before using any of it.</p>
+    <p>And we checked mixing. Too few swaps and the "shuffled" network is still mostly the real one, which quietly biases the null toward the answer you were hoping to disprove. At 5× the number of links, the clustering has stopped drifting, so the chain has mixed.</p>
+
+    <div class="chips">
+      <span class="chip">Python 3</span><span class="chip">NetworkX 3.6</span>
+      <span class="chip">300 reps per null</span>
+      <span class="chip">5m edge swaps</span>
+      <span class="chip">directed swap: ours</span>
+    </div>
+
+    <div class="callout">
+      <p><strong>Where our numbers meet the course's.</strong> The page says a shuffled Marvel has C ≈ 0.155 with a standard deviation of 0.009, and that the real value sits about eighteen standard deviations out. We get <strong>0.155 ± 0.0086</strong> and <em>z</em> = 19.2 from an independent implementation. The real network's C = 0.3199, transitivity 0.1823, average distance 2.674 and diameter 6 also match the page's 0.32, 0.18, 2.7 and 6.</p>
+      <p>We take that as evidence the pipeline is right, not as evidence the conclusions are. Those are different things, and the rest of this post is about the second one.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Results</p>
+    <h2>The scoreboard</h2>
+    <p>Every quantity, both nulls, 300 reps each. The tag in the last column is the verdict against the <em>degree-preserving</em> null — the harder of the two.</p>
+
+    <div class="scroll">
+    <table>
+      <tr>
+        <th>Quantity</th><th class="num">Real</th>
+        <th class="num">G(n,m)</th><th class="num">z</th>
+        <th class="num">Shuffle</th><th class="num">z</th>
+        <th>Verdict</th>
+      </tr>
+      <tr><td>Triangles</td><td class="num">1,835</td><td class="num">179 ± 13</td><td class="num">127</td><td class="num">1,186 ± 46</td><td class="num">14.1</td><td><span class="tag t-live">survives</span></td></tr>
+      <tr><td>Average clustering <em>C</em></td><td class="num">0.320</td><td class="num">0.037 ± .003</td><td class="num">92.9</td><td class="num">0.155 ± .009</td><td class="num">19.2</td><td><span class="tag t-live">survives</span></td></tr>
+      <tr><td>Transitivity</td><td class="num">0.182</td><td class="num">0.037 ± .003</td><td class="num">55.3</td><td class="num">0.118 ± .005</td><td class="num">14.1</td><td><span class="tag t-live">survives</span></td></tr>
+      <tr><td>Reciprocity <em>(directed)</em></td><td class="num">0.392</td><td class="num">0.019 ± .004</td><td class="num">95.8</td><td class="num">0.058 ± .007</td><td class="num">46.8</td><td><span class="tag t-live">survives</span></td></tr>
+      <tr><td>Average distance</td><td class="num">2.674</td><td class="num">2.663 ± .004</td><td class="num">2.8</td><td class="num">2.602 ± .016</td><td class="num">4.6</td><td><span class="tag t-live">survives*</span></td></tr>
+      <tr><td>Degree assortativity</td><td class="num">−0.105</td><td class="num">−0.008 ± .026</td><td class="num">−3.8</td><td class="num">−0.122 ± .011</td><td class="num">1.5</td><td><span class="tag t-dead">dies</span></td></tr>
+      <tr><td>Random friend's degree</td><td class="num">24.90</td><td class="num">11.22 ± .09</td><td class="num">157.8</td><td class="num">24.38 ± .54</td><td class="num">1.0</td><td><span class="tag t-dead">dies</span></td></tr>
+      <tr><td>Diameter</td><td class="num">6</td><td class="num">4.39 ± .49</td><td class="num">3.3</td><td class="num">5.45 ± .56</td><td class="num">1.0</td><td><span class="tag t-dead">dies</span></td></tr>
+      <tr><td>Maximum degree</td><td class="num">106</td><td class="num">20.3 ± 1.5</td><td class="num">56.3</td><td class="num">106 ± 0</td><td class="num">—</td><td><span class="tag t-free">pinned</span></td></tr>
+      <tr><td>Isolates</td><td class="num">0</td><td class="num">0.00 ± .06</td><td class="num">−0.1</td><td class="num">0 ± 0</td><td class="num">—</td><td><span class="tag t-free">pinned</span></td></tr>
+      <tr><td>⟨k²⟩/⟨k⟩</td><td class="num">22.25</td><td class="num">11.22 ± .08</td><td class="num">139.2</td><td class="num">22.25 ± 0</td><td class="num">—</td><td><span class="tag t-free">pinned</span></td></tr>
+    </table>
+    </div>
+    <p style="font-size:.84rem;color:var(--muted);margin-top:14px">* Survives, but in the opposite direction to the one we expected — see below.</p>
+
+    <figure class="wide">
+      <img src="figures/null_battery.svg" alt="Six histograms. In each, a pale distribution from the random graph null and a darker one from the degree-preserving shuffle, with a red line marking the real network's value. The red line sits far right of both in clustering, transitivity and reciprocity; it sits inside the dark distribution for assortativity and random friend's degree.">
+      <figcaption>Six quantities, two nulls, 300 networks each. Pale is G(n, m); dark is the degree-preserving shuffle; the red line is the real Marvel network. Read the gap between the red line and the dark histogram — that is the part the degree sequence cannot explain. In the top-right and bottom-middle panels there is no gap.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="figures/zscores.svg" alt="Horizontal bar chart of absolute z-scores for ten quantities under both nulls, on a symlog axis, with a dashed line at |z| = 2.">
+      <figcaption>The same result as distance-from-chance. Note the axis is symlog — the bars at the top are off the scale of the ones at the bottom. Three quantities have no dark bar at all, because the shuffle cannot move them.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Analysis</p>
+    <h2>Reading the three piles</h2>
+
+    <h3>Pinned: the three claims that were never claims</h3>
+    <p>Maximum degree, isolate count and ⟨k²⟩/⟨k⟩ come out of the shuffle with a standard deviation of exactly zero. Not small — zero. Every one of the 300 shuffled networks had a maximum degree of 106 and precisely the same value of ⟨k²⟩/⟨k⟩ as the real network.</p>
+    <p>This is obvious once stated and was not obvious to us beforehand. The shuffle preserves every node's degree by construction, so any quantity that is a function of the degree sequence alone is preserved too. There is no distribution to compare against, no <em>z</em>-score to compute, and the question "is Spider-Man's 106 links surprising?" simply cannot be asked of this null. Against G(n, m) it is wildly surprising — <em>z</em> = 56 — but that is a different question with a different answer.</p>
+    <p>The lesson we take is uncomfortable: <strong>a null model can be incapable of disagreeing with you.</strong> If we had only run the shuffle and only reported <em>p</em>-values, three of our week 1 headlines would have come back as "not significant" and we might have written that Spider-Man's dominance was unremarkable. It is not unremarkable. It is just not a question this baseline is built to answer.</p>
+
+    <h3>Dead: assortativity and the friendship paradox</h3>
+    <p>The Marvel network has a degree assortativity of −0.105. Left alone, that reads as a finding: hubs preferentially attach to low-degree characters rather than to each other, and you can spin a story about famous heroes being name-dropped by obscure ones. The shuffle gives <strong>−0.122 ± 0.011</strong>. The real value sits 1.5 standard deviations away — and on the <em>less</em> negative side.</p>
+    <p>So the disassortativity is not a property of Marvel. It is a property of any network with this degree sequence. The mechanism is a counting constraint: Spider-Man has 106 links but there are only 20 other characters with 20 or more, so most of his neighbours are <em>forced</em> to be low-degree. There are not enough hubs to go around. Our network is, if anything, very slightly more hub-to-hub than its own degrees require.</p>
+    <p>The friendship paradox goes the same way, and more sharply. A random character has 10.26 links; a random neighbour of a random character has 24.90. That is an enormous effect and it is completely real. It is also completely unsurprising: the shuffle gives 24.38 ± 0.54, <em>z</em> = 1.0.</p>
+
+    <figure>
+      <img src="figures/friendship.svg" alt="Scatter of each character's degree against the average degree of their neighbours. Nearly every point lies above the diagonal. Spider-Man sits alone at the far right, the only point below it.">
+      <figcaption>Each character against the average popularity of their neighbours. Above the dashed line means your friends are more popular than you. 242 of 277 characters are up there.</figcaption>
+    </figure>
+
+    <p>Why the shuffle cannot kill it is worth spelling out, because it is the cleanest thing we learned this week. The mean degree of a random neighbour is ⟨k⟩ + σ²/⟨k⟩. Our degrees have ⟨k⟩ = 10.26 and variance σ² = 123.0, and 10.26 + 123.0/10.26 = <strong>22.25</strong>, which is exactly the number we measured. Both terms are functions of the degree sequence, so the shuffle fixes the whole expression. The friendship paradox is not a fact about superheroes. It is a fact about any network whose degrees have variance, which is all of them.</p>
+    <p>Two footnotes. The version that <em>does</em> move slightly — averaging per character rather than per link — comes in at 24.90 against the shuffle's 24.38, a real but tiny gap driven by the mild assortativity above. And to answer the week's opener directly: <strong>exactly one character in the network is out-popularityed by nobody.</strong> Every one of Spider-Man's 106 neighbours has fewer links than he does. Thirty-five characters have an average friend no more popular than themselves; only Spider-Man beats all of his individually.</p>
+
+    <h3>Alive: triangles, reciprocity, and half a clustering coefficient</h3>
+    <p>Clustering is the interesting survivor because it survives <em>partially</em>, and the partial is the point. Chance alone gives 0.037. Chance plus the real degree sequence gives 0.155. The real network has 0.320. So the hubs do explain a large chunk of the surplus — they roughly quadruple the baseline, because a node with 106 neighbours generates so many neighbour-pairs that some get linked by sheer volume. But they explain about half of the distance to the real value, and the remaining half is 19 standard deviations wide.</p>
+    <p>That residue is the actual finding. Something is making triangles in the Marvel network beyond what its degrees force, and the obvious candidate is teams: the X-Men appear in each other's articles because they appear in each other's stories, and a shared team produces a densely linked triple that no degree-preserving rewiring will reproduce. We cannot demonstrate that with this week's tools. Week 4 is about communities, and this is the number we will bring to it.</p>
+    <p>Reciprocity is the strongest survivor in the whole table. 39% of arrows are mutual, against 5.8% under a directed degree-preserving shuffle — <em>z</em> = 47. Keeping every character's in- and out-degree gets you almost none of the way there. Mutual linking is an editorial habit: if A's article discusses its relationship with B, B's article usually discusses the same relationship. That is a fact about how the articles were written, and no amount of degree bookkeeping predicts it.</p>
+
+    <h3>The one that went the wrong way</h3>
+    <p>We expected average distance to be a null result — the course page makes the point that short paths are what chance gives you anyway, so 2.674 next to G(n, m)'s 2.663 is exactly the non-finding it looks like. What we did not expect is the shuffle: 2.602 ± 0.016, putting the real network <strong>4.6 standard deviations too far apart</strong>.</p>
+    <p>The real Marvel network is measurably <em>worse</em> connected than a random rewiring of itself. This is the same fact as the clustering surplus, seen from the other side: links spent tying a tight group together are links not spent as shortcuts to the rest of the network. Triangles are locally efficient and globally wasteful. It is a small effect in absolute terms — seven hundredths of a hop — but it is not noise, and it is the sort of thing that only shows up when you have a null tight enough to see it.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">The power-law question</p>
+    <h2>What we still cannot say</h2>
+    <p>Week 1 ended with us noting that the in-degree looked roughly straight on log–log axes. This week we can be precise about what that does and does not license, using the CCDF — the fraction of characters with degree at least <em>k</em> — which needs no binning and uses every data point.</p>
+
+    <figure>
+      <img src="figures/ccdf.svg" alt="Log-log CCDF of Marvel in-degree with a BA model and a random graph for comparison. Marvel runs roughly straight and far to the right; the random graph falls off a cliff around degree 20.">
+      <figcaption>Marvel in-degree against two models. The random graph is the dotted line that collapses at 20 — that is what a network with no hubs looks like. Marvel keeps going to 106.</figcaption>
+    </figure>
+
+    <p>Against G(n, m) the verdict is unambiguous: the random graph's CCDF falls off a cliff just past degree 20 and Marvel's does not. Heavy tail, confirmed, no argument.</p>
+    <p>The exponent is another matter. We fitted γ by maximum likelihood rather than by drawing a line, and then did the thing the fit makes easy to skip — varied the point where we declare the tail to start.</p>
+
+    <figure>
+      <img src="figures/gamma_kmin.svg" alt="The maximum-likelihood exponent plotted against the choice of k-min, rising steadily from about 1.8 to 3.7, crossing the BA prediction of 3 around k-min 15, while the number of nodes remaining in the tail falls toward 20.">
+      <figcaption>The fitted exponent against the only free parameter in the fit. It crosses the BA model's γ = 3 at k<sub>min</sub> ≈ 15, and by then there are 31 characters left to fit.</figcaption>
+    </figure>
+
+    <p>γ̂ ranges from <strong>1.76 to 3.70</strong> depending on where we start the tail. We could report "γ ≈ 3, consistent with preferential attachment" by choosing k<sub>min</sub> = 15, and it would be true and it would be worthless, because k<sub>min</sub> = 8 gives 2.4 and k<sub>min</sub> = 5 gives 2.2 and nothing in the data tells us which to prefer. With 303 nodes and only 21 characters above degree 20, the tail we are fitting is a couple of dozen points.</p>
+
+    <div class="callout">
+      <p><strong>The claim we can make:</strong> the Marvel in-degree distribution is heavy-tailed. Its hubs are far outside anything a random graph with the same density produces, and the practical consequences of that — the friendship paradox, the concentration of attention on five characters — follow from the heavy tail alone.</p>
+      <p><strong>The claim we cannot make:</strong> that it is a power law with any particular exponent, or that preferential attachment generated it. Not because we suspect it is false, but because our evidence cannot distinguish it from a log-normal, and we have not tried. Doing it properly needs an ML fit with k<sub>min</sub> chosen by KS distance, a goodness-of-fit test against synthetic data, and a likelihood-ratio comparison against the alternatives. That is a week 3 job at best, and on 303 nodes it may simply not be answerable.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">So what</p>
+    <h2>What this is actually for</h2>
+    <p>The concrete output is a rule we now apply to our own writing: <strong>before reporting that a number is high, say what it is high compared to, and check that the comparison could have come out the other way.</strong> Three of our week 1 numbers fail that second test against the shuffle. They are still true; they are just not evidence of anything the baseline did not already assume.</p>
+    <p>The transferable part is that the null model is a claim about mechanism, not a statistical formality. Choosing G(n, m) is asserting "I think chance alone would explain this." Choosing the degree shuffle is asserting "I think the degree sequence would explain this." Those are different hypotheses and they give different answers — for clustering, one says the effect is nine times chance and the other says it is twice the degree-driven baseline, and only the second is a statement about Marvel rather than about arithmetic.</p>
+    <p>It also gives us a concrete handle for the rest of the course. We now have one number — the clustering residue that the degree sequence cannot explain, 19 standard deviations wide — that we believe is real, unexplained, and probably about teams. Week 4 gets to try to explain it. If community structure accounts for the surplus, that is a result we set up here.</p>
+    <p>And on the AI question the course keeps pressing: the sentence "the Marvel network's clustering is ten times that of a random network, which proves it is caused by the heavy-tailed degree distribution" is exactly the shape of what a fluent model produces, and the arithmetic in it is correct. The flaw is not a wrong number. It is that the baseline cannot support the causal word, and you cannot catch that by checking the calculation.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Conclusion</p>
+    <h2>Where we landed</h2>
+    <p>Eleven quantities, two baselines, six hundred networks. Four survive a degree-preserving shuffle and are properties of the Marvel network: the triangle surplus, the clustering surplus, the transitivity surplus, and reciprocity — which is the most extreme of the lot and the one nobody talks about. One survives in the unexpected direction: the network's paths are slightly longer than its own rewiring, which is the cost of all those triangles. Three die: assortativity, the diameter, and the friendship paradox, all of which turn out to be consequences of the degree sequence and not facts about superheroes. And three could never have died, because the shuffle holds them fixed by construction.</p>
+    <p>The single result we would defend hardest is the friendship paradox one, because it is the one where the effect is huge and the finding is nil. ⟨k⟩ + σ²/⟨k⟩ = 22.25 predicts the measurement exactly. Anyone reporting "Marvel characters' friends are 2.4× more popular than they are" as a discovery about Marvel has measured the variance of a degree sequence and called it sociology.</p>
+    <p>What we would do next, in order: chase the clustering residue into community structure; run the Clauset procedure properly on the in-degree and probably conclude that 303 nodes cannot settle it; and put a third null in the table — one that preserves the degree sequence <em>and</em> the triangles — to find out whether reciprocity is still extreme once you hold clustering fixed. We suspect it is. We have been wrong about that kind of suspicion twice already this week.</p>
+  </section>
+
+  <footer>
+    <p>Data: the 02805 week-1 snapshot of Wikipedia's <a href="https://en.wikipedia.org/wiki/Category:Marvel_Comics_superheroes">Category:Marvel Comics superheroes</a>, frozen 26 August 2026. Article text and titles from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. All null-model figures from 300 replicates per baseline; the directed edge-swap is our own implementation and preserves in- and out-degree separately.</p>
+    <p><a href="../week1/week1.html">← Week 1: degrees and components</a> &nbsp;·&nbsp; <a href="../../">All weeks</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
