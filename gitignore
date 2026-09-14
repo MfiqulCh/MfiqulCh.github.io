@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# week 5 ships the full wiki-source per page — too big for git.
+# download it with the notebook instead of committing it.
+data/raw/
