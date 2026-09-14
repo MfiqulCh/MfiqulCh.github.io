@@ -159,7 +159,7 @@
   <section>
     <p class="kicker">Procedure</p>
     <h2>What we did</h2>
-    <p>Every number and every figure on this page is produced by <a href="../../notebooks/week1_analysis.ipynb">notebooks/week1_analysis.ipynb</a>, which loads the data from <code>data/</code> and writes the SVGs straight into this page's <code>figures/</code> folder. Re-running it overwrites them, so what you see here cannot drift away from the code that made it.</p>
+    <p>Every number and every figure on this page is produced by <a href="../../notebooks/week1_marvel_network.ipynb">notebooks/week1_analysis.ipynb</a>, which loads the data from <code>data/</code> and writes the SVGs straight into this page's <code>figures/</code> folder. Re-running it overwrites them, so what you see here cannot drift away from the code that made it.</p>
     <p>Loading a network is where the first silent mistake usually happens, so this is the one step we were careful about. Building the graph from the edge list alone gives 286 nodes: 17 characters appear in neither column, and they vanish without an error message. We add the full node roster first.</p>
 
 <pre>G = nx.DiGraph()
@@ -353,7 +353,6 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
   <footer>
     <p>Data: the 02805 week-1 snapshot of Wikipedia's <a href="https://en.wikipedia.org/wiki/Category:Marvel_Comics_superheroes">Category:Marvel Comics superheroes</a>, frozen 26 August 2026. Article text and titles from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Details of <em>Strikeforce: Morituri</em> checked against the characters' own Wikipedia articles.</p>
     <p>Code: <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week1_marvel_network.ipynb">the week 1 notebook</a>, which regenerates every figure here.</p>
-    <p>Code: <a href="../../notebooks/week1_analysis.ipynb">week1_analysis.ipynb</a> and the shared helpers in <a href="../../src/marvel.py">src/marvel.py</a>.</p>
     <p><a href="../../">← Back to all weeks</a></p>
   </footer>
 
