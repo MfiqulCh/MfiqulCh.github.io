@@ -1,0 +1,178 @@
+/* 303 Superheroes — shared stylesheet for every weekly post.
+   One copy, so weeks 3-8 inherit the design system instead of
+   carrying their own duplicate of it. */
+
+:root{
+    --paper:#E3E6E3; --card:#F8F9F7; --ink:#16224C; --ink-soft:#4A5878;
+    --muted:#8992A3; --rule:#C6CBC8; --red:#D22B2B; --measure:66ch;
+  }
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:"Newsreader",Georgia,serif;font-size:19px;line-height:1.66}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+.col{max-width:var(--measure)}
+.topbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+          padding:22px 0 0;font-size:.8rem;color:var(--ink-soft)}
+.topbar a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+.topbar a:hover{color:var(--red)}
+h1{font-family:"Archivo Black",sans-serif;font-weight:400;
+     font-size:clamp(2.4rem,7vw,4.6rem);line-height:.94;letter-spacing:-.03em;margin:34px 0 0}
+.standfirst{font-size:clamp(1.1rem,2.2vw,1.36rem);font-style:italic;color:var(--ink-soft);
+              max-width:44ch;margin:.6em 0 0;line-height:1.4}
+.byline{margin:22px 0 0;font-size:.86rem;color:var(--muted)}
+h2{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.6rem;
+     letter-spacing:-.015em;margin:0 0 4px}
+h3{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.02rem;margin:34px 0 6px}
+section{margin:64px 0 0;padding-top:26px;border-top:2px solid var(--ink)}
+.kicker{font-size:.84rem;color:var(--red);margin:0 0 14px;font-family:"Archivo Black",sans-serif}
+p{max-width:var(--measure)}
+ul,ol{max-width:var(--measure);padding-left:1.15em}
+li{margin:.35em 0}
+strong{font-weight:500;color:var(--ink)}
+figure{margin:30px 0 0;background:var(--card);border:1px solid var(--rule);
+         border-radius:2px;padding:16px 16px 6px}
+figure img{width:100%;height:auto;display:block}
+figcaption{font-size:.86rem;color:var(--ink-soft);padding:12px 4px 10px;line-height:1.5;max-width:78ch}
+.figgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+.figgrid figure{margin:0}
+/* --- flip cards --- */
+  .flip{all:unset;display:block;box-sizing:border-box;cursor:pointer;text-align:left;
+        background:var(--card);border:1px solid var(--rule);border-radius:2px;
+        padding:16px;perspective:1500px;font-family:inherit;color:var(--ink)}
+.flip:hover{border-color:var(--ink)}
+.flip:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.faces{display:grid;transform-style:preserve-3d;
+         transition:transform .6s cubic-bezier(.2,.75,.3,1)}
+.flip[aria-expanded="true"] .faces{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg);display:flex;flex-direction:column;justify-content:center}
+.flip img{width:100%;height:auto;display:block}
+.cap{display:block;font-size:.86rem;color:var(--ink-soft);padding:12px 2px 2px;line-height:1.5}
+.face.back h4{font-family:"Archivo Black",sans-serif;font-weight:400;
+                font-size:.92rem;margin:0 0 12px;color:var(--ink)}
+.face.back p{font-size:.89rem;line-height:1.58;margin:0 0 .85em;max-width:none;color:var(--ink-soft)}
+.face.back p:last-of-type{margin-bottom:0}
+.face.back b{color:var(--ink);font-weight:500}
+@media (prefers-reduced-motion: reduce){.faces{transition:none}}
+@media print{
+    .faces{transform:none!important;transform-style:flat}
+    .face{backface-visibility:visible}
+    .face.back{transform:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+  }
+table{border-collapse:collapse;width:100%;max-width:640px;margin:26px 0 0;font-size:.94rem}
+th,td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--rule)}
+th{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:.78rem;color:var(--ink)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0}
+tr td:first-child{color:var(--ink)}
+.callout{background:var(--card);border-left:3px solid var(--red);padding:18px 22px;
+           margin:30px 0 0;max-width:var(--measure)}
+.callout p{margin:0}
+.callout p + p{margin-top:.8em}
+pre{background:var(--card);border:1px solid var(--rule);border-radius:2px;
+      padding:16px 18px;overflow-x:auto;font-size:.84rem;line-height:1.55;
+      max-width:var(--measure);font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+.codelink{background:var(--card);border:1px solid var(--ink);border-radius:2px;
+             padding:14px 18px;margin:26px 0 0;max-width:var(--measure)}
+.codelink a{font-family:"Archivo Black",sans-serif;font-size:.92rem;color:var(--ink);
+              text-decoration-thickness:1px;text-underline-offset:3px}
+.codelink a:hover{color:var(--red)}
+.codelink span{font-size:.86rem;color:var(--ink-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:22px 0 0;max-width:74ch}
+.chip{font-size:.8rem;padding:5px 10px;border:1px solid var(--rule);border-radius:2px;
+        color:var(--ink-soft);background:var(--card)}
+footer{margin:80px 0 0;border-top:1px solid var(--rule);padding:26px 0 70px;
+         font-size:.88rem;color:var(--ink-soft)}
+footer a{color:var(--ink)}
+footer a:hover{color:var(--red)}
+@media (max-width:760px){
+    body{font-size:18px}
+    .wrap{padding:0 18px}
+    .figgrid{grid-template-columns:1fr}
+    section{margin-top:48px}
+  }
+
+/* --- week 2 additions: verdict tags, wide figures --- */
+figure.wide{margin-left:calc(-1 * min(6vw, 90px));margin-right:calc(-1 * min(6vw, 90px))}
+.tag{font-family:"Archivo Black",sans-serif;font-size:.66rem;padding:3px 7px;border-radius:2px;
+       white-space:nowrap;letter-spacing:.02em}
+.t-live{background:var(--ink);color:var(--card)}
+.t-dead{background:#DCDFDD;color:var(--ink-soft)}
+.t-free{background:var(--red);color:#fff}
+.scroll{overflow-x:auto}
+
+/* --- week 3: character roster ------------------------------------------ */
+.roster-legend{font-size:.86rem;color:var(--ink-soft);margin:26px 0 0;max-width:var(--measure)}
+.roster{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(92px,1fr);gap:10px;
+        overflow-x:auto;padding:8px 4px 16px;margin:16px 0 0;scroll-snap-type:x proximity}
+.hero{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;
+      align-items:center;gap:8px;text-align:center;scroll-snap-align:start;min-width:0}
+.hero-name{font-family:"Archivo Black",sans-serif;font-size:.74rem;line-height:1.15;color:var(--ink);
+           min-height:2.3em;display:flex;align-items:flex-end;justify-content:center}
+.hero-portrait{display:block;position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;
+               border-radius:3px;border:2px solid var(--ink);
+               background:linear-gradient(160deg,var(--c1),var(--c2));
+               transition:transform .15s ease,box-shadow .15s ease}
+.hero-portrait img{display:block;width:100%;height:100%;object-fit:cover}
+.ph{position:absolute;inset:0;display:grid;place-items:center;font-family:"Archivo Black",sans-serif;
+    font-size:1.5rem;letter-spacing:-.02em;color:rgba(255,255,255,.92);
+    text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.hero:hover .hero-portrait{transform:translateY(-3px);box-shadow:4px 4px 0 var(--ink)}
+.hero:focus-visible .hero-portrait{outline:2px solid var(--red);outline-offset:3px}
+.hero .tag{margin-top:2px}
+
+details.as-table{margin:18px 0 0;max-width:720px}
+details.as-table summary{cursor:pointer;font-size:.86rem;color:var(--ink-soft)}
+details.as-table summary:hover{color:var(--red)}
+
+/* the dossier dialog */
+body.hm-lock{overflow:hidden}
+.hm-overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:4vh 4vw;
+            background:rgba(22,34,76,0);transition:background .45s ease}
+.hm-overlay.is-open{background:rgba(22,34,76,.62)}
+.hm-stage{width:min(900px,100%);perspective:1800px}
+.hm-card{display:grid;transform-style:preserve-3d;will-change:transform;
+         transition:transform .56s cubic-bezier(.2,.75,.25,1)}
+.hm-face{grid-area:1/1;border-radius:4px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.hm-front{overflow:hidden;background:linear-gradient(160deg,var(--c1),var(--c2))}
+.hm-front .hero-portrait{width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0}
+.hm-front .ph{font-size:5rem}
+.hm-back{position:relative;transform:rotateY(180deg);background:var(--c1);color:#F7F7F4;
+         border-top:6px solid var(--c2);box-shadow:0 30px 80px rgba(0,0,0,.35);
+         display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:30px;
+         padding:30px;max-height:88vh;overflow-y:auto}
+.hm-pic{position:relative;aspect-ratio:3/4;border-radius:3px;overflow:hidden;align-self:start;
+        background:linear-gradient(200deg,var(--c2),var(--c1) 85%);
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.hm-pic img{display:block;width:100%;height:100%;object-fit:cover}
+.hm-pic .ph{font-size:4.2rem}
+.hm-text{min-width:0}
+.hm-verdict{font-family:"Archivo Black",sans-serif;font-size:.74rem;letter-spacing:.06em;
+            text-transform:uppercase;color:rgba(255,255,255,.72);margin:4px 0 6px}
+.hm-text h3{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:1.9rem;
+            line-height:1.05;letter-spacing:-.02em;margin:0;color:#fff}
+.hm-real{font-style:italic;color:rgba(255,255,255,.7);margin:6px 0 0;font-size:.95rem}
+.hm-text h4{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:.78rem;
+            letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.62);margin:22px 0 4px}
+.hm-text p{font-size:.95rem;line-height:1.58;margin:0;max-width:none;color:rgba(255,255,255,.92)}
+.hm-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:22px 0 0;padding:0}
+.hm-stats div{background:rgba(255,255,255,.08);border-left:3px solid var(--c2);padding:9px 10px}
+.hm-stats dt{font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.hm-stats dd{margin:2px 0 0;font-family:"Archivo Black",sans-serif;font-size:1.05rem;color:#fff;
+             font-variant-numeric:tabular-nums}
+.hm-wiki{display:inline-block;margin-top:18px;font-size:.86rem;color:#fff;
+         text-decoration-thickness:1px;text-underline-offset:3px}
+.hm-close{all:unset;box-sizing:border-box;position:absolute;top:10px;right:12px;z-index:2;
+          width:34px;height:34px;display:grid;place-items:center;cursor:pointer;border-radius:50%;
+          font-size:1.5rem;line-height:1;color:#fff;background:rgba(255,255,255,.12)}
+.hm-close:hover{background:rgba(255,255,255,.24)}
+.hm-close:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+@media (max-width:680px){
+  .hm-back{grid-template-columns:1fr;gap:18px;padding:24px 20px}
+  .hm-pic{aspect-ratio:auto;height:min(34vh,240px)}
+  .hm-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hm-text h3{font-size:1.55rem}
+}
+@media (prefers-reduced-motion: reduce){
+  .hm-card,.hm-overlay,.hero-portrait{transition:none}
+}
