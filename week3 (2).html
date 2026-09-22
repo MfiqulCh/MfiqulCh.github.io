@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 3 · Who matters, and why — 303 Superheroes</title>
+<meta name="description" content="Centrality on the Marvel network. The most surprising character in it has two links.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span><a href="../../">← 303 Superheroes</a></span>
+    <span>Week 3 · Who matters, and why</span>
+  </div>
+
+  <h1>The most<br>important<br>character has<br>two links</h1>
+  <p class="standfirst">Spider-Man tops every centrality measure in the Marvel network, and that turns out to be the least interesting fact about him. The characters worth naming are the ones whose position is worth more than their popularity.</p>
+  <p class="byline">02805 Social Graphs and Interactions · DTU · week 3 · Elena, Karen, Mush</p>
+
+  <section>
+    <p class="kicker">The problem</p>
+    <h2>Importance is a question, not a property</h2>
+    <p>Ask who the most important character in the Marvel network is and the answer is Spider-Man, by every measure we have. He has the most links, he is closest to everyone, more shortest paths run through him than through anyone else, and he wins on PageRank too. Four different definitions of importance, one winner.</p>
+    <p>That unanimity should be suspicious rather than satisfying. The four measures ask genuinely different questions — <em>how many people do you know</em>, <em>how fast can you reach everyone</em>, <em>who has to go through you</em>, <em>who is endorsed by the endorsed</em> — and a network where they all give the same answer is a network where three of them are redundant. So either Marvel really is that simple, or the measures are being dominated by something they share.</p>
+    <p>They share degree. And week 2 taught us what to do about a number that might just be degree in disguise: shuffle the links while holding every character's degree fixed, and see whether the number survives.</p>
+    <p>This week we run that test on every character at once. It splits the network into three groups — the characters whose importance is exactly what their popularity predicts, the ones who have less, and a small handful who have dramatically more. The largest surprise in the network is a character with two links, and once you see why, the whole idea of centrality makes more sense.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Method</p>
+    <h2>What we did</h2>
+    <p>Everything path-based here comes out of breadth-first search: stand on a character, everyone they link to is at distance 1, everyone <em>those</em> people link to that you have not seen is at distance 2, and so on. We wrote it ourselves rather than calling <code>networkx</code>, then checked it against <code>networkx</code> from 20 random starting characters. It agrees exactly. Same for PageRank — written as the iteration, validated against the library at three values of α, agreeing to ten decimal places.</p>
+    <p>Those validations are not ceremony. Both algorithms are short enough that an LLM writes them instantly and plausibly, and both fail in ways that produce numbers rather than errors. A BFS that forgets to check whether it has already seen a node still returns distances, just wrong ones. A PageRank that mishandles the 20 characters whose pages link to nobody still returns a ranking, just one that has quietly leaked probability out of the distribution. Ours sums to 1.000000000 at every α we tried, which is the check that catches it.</p>
+
+<pre>def bfs(G, source):
+    dist = {source: 0}
+    queue = deque([source])
+    while queue:
+        v = queue.popleft()
+        for w in G[v]:
+            if w not in dist:            # the guard that makes it a *shortest* path
+                dist[w] = dist[v] + 1
+                queue.append(w)
+    return dist</pre>
+
+    <p>On the 277-character giant component we compute degree, closeness, harmonic, betweenness and eigenvector centrality, and PageRank on the directed network. Then the null: 200 degree-preserving shuffles, recomputing betweenness and closeness for every character in every shuffle, so each character gets their own distribution and their own <em>z</em>-score.</p>
+    <p>Our numbers match the ones the course publishes independently: Spider-Man's closeness 0.5948 against a stated 0.59, his mean distance 1.6812 against 1.68, the median character 0.3812 against 0.38, his betweenness 0.2349 against 0.23.</p>
+
+    <div class="chips">
+      <span class="chip">own BFS, validated</span>
+      <span class="chip">own PageRank, validated</span>
+      <span class="chip">200 shuffles × 277 characters</span>
+      <span class="chip">NetworkX 3.6</span>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Results</p>
+    <h2>Three kinds of character</h2>
+    <p>Plot betweenness against degree and you get a diagonal. That is the whole story for most of the network — the two have a rank correlation above 0.9, and if all you wanted was a ranking you could stop at degree and save the computation.</p>
+
+    <figure>
+      <img src="figures/betweenness_degree.svg" alt="Log-log scatter of betweenness against degree for 277 characters. Most points lie on a rising diagonal. Rockman and Turbo sit far above it at very low degree; Black Cat and Storm sit below it at high degree.">
+      <figcaption>Every character in the giant component. The diagonal is the expected relationship; the labelled points break it in both directions.</figcaption>
+    </figure>
+
+    <p>The useful version is the same plot with the null model underneath. For each character we now ask not "how much betweenness do they have" but "how much do they have <em>compared to themselves</em>, across 200 networks where their degree is identical and everything else is scrambled."</p>
+
+    <figure>
+      <img src="figures/broker_z.svg" alt="Scatter of z-score against degree. Most characters cluster around zero at every degree. Rockman sits at z of 8 with degree 2, Turbo at 5.4 with degree 5, Hercules and Black Widow above 4 at degree 25. Spider-Man sits at 0.4 with degree 106.">
+      <figcaption>The shuffle test, per character. Above the upper line: more brokerage than degree can explain. Below the lower line: less. Most of the network sits between them, at every degree.</figcaption>
+    </figure>
+
+    <h3 class="roster-head">Nine characters, three verdicts</h3>
+    <p class="roster-legend"><strong>broker</strong> — more betweenness than their degree explains · <strong>expected</strong> — exactly what their degree predicts · <strong>sheltered</strong> — less. Click anyone for the details.</p>
+
+    <div class="roster">
+      <button class="hero" type="button" data-hero="rockman" data-name="Rockman" style="--c1:#5A4632;--c2:#C9A56A" aria-label="Rockman, broker — open details">
+        <span class="hero-name">Rockman</span>
+        <span class="hero-portrait"><span class="ph">RM</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="turbo" data-name="Turbo" style="--c1:#3B2E6E;--c2:#5FB8D6" aria-label="Turbo, broker — open details">
+        <span class="hero-name">Turbo</span>
+        <span class="hero-portrait"><span class="ph">TB</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="hercules" data-name="Hercules" style="--c1:#7A1F1F;--c2:#D9A93C" aria-label="Hercules, broker — open details">
+        <span class="hero-name">Hercules</span>
+        <span class="hero-portrait"><span class="ph">HC</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="black-widow" data-name="Black Widow" style="--c1:#141417;--c2:#C8232C" aria-label="Black Widow, broker — open details">
+        <span class="hero-name">Black Widow</span>
+        <span class="hero-portrait"><span class="ph">BW</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="guardsman" data-name="Guardsman" style="--c1:#1F4A2B;--c2:#D2B347" aria-label="Guardsman, broker — open details">
+        <span class="hero-name">Guardsman</span>
+        <span class="hero-portrait"><span class="ph">GS</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="us-agent" data-name="U.S. Agent" style="--c1:#14265C;--c2:#C5202E" aria-label="U.S. Agent, broker — open details">
+        <span class="hero-name">U.S. Agent</span>
+        <span class="hero-portrait"><span class="ph">US</span></span>
+        <span class="tag t-live">broker</span>
+      </button>
+      <button class="hero" type="button" data-hero="spider-man" data-name="Spider-Man" style="--c1:#A8182A;--c2:#1D3C8F" aria-label="Spider-Man, expected — open details">
+        <span class="hero-name">Spider-Man</span>
+        <span class="hero-portrait"><span class="ph">SM</span></span>
+        <span class="tag t-dead">expected</span>
+      </button>
+      <button class="hero" type="button" data-hero="storm" data-name="Storm" style="--c1:#28344A;--c2:#9FB4CC" aria-label="Storm, sheltered — open details">
+        <span class="hero-name">Storm</span>
+        <span class="hero-portrait"><span class="ph">ST</span></span>
+        <span class="tag t-free">sheltered</span>
+      </button>
+      <button class="hero" type="button" data-hero="black-cat" data-name="Black Cat" style="--c1:#101013;--c2:#A7ADB8" aria-label="Black Cat, sheltered — open details">
+        <span class="hero-name">Black Cat</span>
+        <span class="hero-portrait"><span class="ph">BC</span></span>
+        <span class="tag t-free">sheltered</span>
+      </button>
+    </div>
+
+
+    <template id="hero-rockman">
+      <div class="hm-pic"><span class="ph">RM</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 7.98</p>
+        <h3>Rockman</h3>
+        <p class="hm-real">Golden Age hero</p>
+        <h4>Who they are</h4>
+        <p>A Timely Comics hero from August 1941, back when Marvel was still called Timely. Rockman ruled Abyssmia, a kingdom beneath the United States, and came up to the surface to help with the war effort — super-strong, needing neither food nor air, travelling by digger car. He got four issues of <em>USA Comics</em> and then sixty-six years of silence, until 2008's <em>The Twelve</em> revived him as a man in permanent mourning whose underground kingdom might have been a delusion. A superhero his own publisher forgot, which is exactly why his page collects two links in a network of 303.</p>
+        <h4>Why they're here</h4>
+        <p>Two links is near the floor — 213 characters have five or fewer. His betweenness of 0.0072 is small in absolute terms too; less than one percent of the network's shortest paths. What makes it the largest z-score we measured is the comparison. Across 200 shuffles that kept him at exactly two links and reassigned which two, his betweenness averaged <strong>0.0002</strong>, because a randomly chosen pair of neighbours almost never includes somebody with no other way in. The real network handed him The Witness, whose single link is to him. So Rockman collects all 275 of The Witness's shortest paths and nothing else. None of this is popularity. It is one link, pointed at the right person.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>2</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0072</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0002</dd></div>
+          <div><dt>z</dt><dd>7.98</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Rockman_(character)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-turbo">
+      <div class="hm-pic"><span class="ph">TB</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 5.40</p>
+        <h3>Turbo</h3>
+        <p class="hm-real">a codename, two heroes</p>
+        <h4>Who they are</h4>
+        <p>Michiko "Mickey" Musashi, who borrowed a costume for a comic convention and discovered it was the genuine Torpedo armour — nuclear turbines, supersonic flight, a visor built to see through Dire Wraith disguises. She shared it with the friend who found it, Mike Jeffries, turned out to be far better at wearing it, and kept going as a New Warrior after he was murdered for it. Later the Loners and Avengers Academy. One of the few Marvel heroes whose origin story is fancy dress.</p>
+        <h4>Why they're here</h4>
+        <p>Five links and nine times the brokerage they predict: 0.0075 against a shuffled 0.0008. Two separate things are happening. Like Rockman, one of her five neighbours — Redneck — has no other link, so she is his only door. And the other four sit around Nova, Darkhawk and Rom the Space Knight, three corners of the 1990s cosmic books that rarely link to each other directly. She is simultaneously a dead end's only exit and a junction between neighbourhoods. Degree cannot see either.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>5</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0075</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0008</dd></div>
+          <div><dt>z</dt><dd>5.40</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Turbo_(comics)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-hercules">
+      <div class="hm-pic"><span class="ph">HC</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 4.38</p>
+        <h3>Hercules</h3>
+        <p class="hm-real">Hercules Panhellenios</p>
+        <h4>Who they are</h4>
+        <p>Hercules Panhellenios, the son of Zeus, carried out of Greek myth and into the Avengers, the Defenders and the Champions. Marvel writes him as the loud counterweight to Thor: a brawler who fights the Hulk to a standstill and then drinks with him, and whose best modern run is a buddy act with the teenage genius Amadeus Cho. Three thousand years old and the least self-serious character in the network.</p>
+        <h4>Why they're here</h4>
+        <p>26 links, and 0.0374 betweenness — third-highest in the network behind Spider-Man and the Hulk. Degree already predicts a lot of that: the shuffle gives him 0.0179. He doubles it, four standard deviations out, and his neighbour list explains why. Spider-Man, Hulk, Wolverine, She-Hulk, Black Widow, Cable, Human Torch, Noh-Varr — street level, the Hulk's circle, the X-Men, the cosmic books and Asgard, groups whose pages rarely mention each other. Paths between them route through him because he is one of the few characters with a foot in all of them. This is brokerage in the Medici sense: not the most connected, the most <em>between</em>.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>26</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0374</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0179</dd></div>
+          <div><dt>z</dt><dd>4.38</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Hercules_(Marvel_Comics)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-black-widow">
+      <div class="hm-pic"><span class="ph">BW</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 4.06</p>
+        <h3>Black Widow</h3>
+        <p class="hm-real">Natasha Romanova</p>
+        <h4>Who they are</h4>
+        <p>Natasha Romanova, trained as a Soviet operative, defected, and became the Avenger with no powers at all — just the training, and a habit of being the most competent person in the room. Her history is mostly partnerships: Hawkeye, who she first fought and then recruited; Daredevil, who she co-headlined with for two years; the Winter Soldier, who knew her before she changed sides. A spy is a character defined by who she has worked with, and the network notices.</p>
+        <h4>Why they're here</h4>
+        <p>25 links and 0.0351 betweenness against a shuffled 0.0171 — roughly double, four standard deviations out. The cause is the spread. Her neighbours are Spider-Man, Wolverine, Doctor Strange, Deadpool, Venom, Cloak and Dagger, Hercules, Adam Warlock: street level, mutants, magic, cosmic, with almost no two from the same corner. A career of defecting and reassignment produces exactly the neighbour list that maximises betweenness. She is also Rockman's other link, which makes her the last stop on the only road to The Witness.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>25</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0351</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0171</dd></div>
+          <div><dt>z</dt><dd>4.06</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Black_Widow_(Natasha_Romanova)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-guardsman">
+      <div class="hm-pic"><span class="ph">GS</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 3.47</p>
+        <h3>Guardsman</h3>
+        <p class="hm-real">an armoured identity</p>
+        <h4>Who they are</h4>
+        <p>An armoured identity rather than a person. Kevin O'Brien was a Stark engineer who built a suit from Tony Stark's designs, went paranoid inside it and died; his brother Michael took the name up afterwards, and the Guardsmen eventually became the armoured guard corps at the Vault, the prison for superhuman criminals. Essentially an Iron Man suit worn by people who are not Iron Man, which is most of the tragedy right there.</p>
+        <h4>Why they're here</h4>
+        <p>Eight links and four times the betweenness they predict: 0.0084 against a shuffled 0.0021. Same two mechanisms as Turbo. One neighbour, Force, has no other link in the network, so Guardsman is his only exit. And the remaining seven are unusually scattered for so small a number — Luke Cage and Eddie Brock at street level, Quasar in the cosmic books, War Machine and U.S. Agent among the armoured heroes. Eight links spent in five different neighbourhoods buys far more brokerage than eight links spent inside one.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>8</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0084</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0021</dd></div>
+          <div><dt>z</dt><dd>3.47</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Guardsman_(character)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-us-agent">
+      <div class="hm-pic"><span class="ph">US</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">broker · z = 3.23</p>
+        <h3>U.S. Agent</h3>
+        <p class="hm-real">John Walker</p>
+        <h4>Who they are</h4>
+        <p>John Walker, who was hired to <em>be</em> Captain America when Steve Rogers quit, and turned out to be what the job looks like without the restraint — harder, angrier, willing to kill. When Rogers came back, Walker was rebranded U.S. Agent and spent decades as the West Coast Avengers' problem and the government's blunt instrument. A character whose entire premise is standing next to someone more famous.</p>
+        <h4>Why they're here</h4>
+        <p>21 links, 0.0255 betweenness, shuffled 0.0121 — a little over double, three standard deviations out. Being the substitute Captain America put him in three places at once: the Captain America books, the West Coast Avengers, and the armoured-and-government crowd around War Machine and the Guardsmen. Those three sets barely link to each other, so he sits on the paths between them. The course page names him alongside Hercules and Black Widow as a betweenness top-tenner who only ranks 32nd by degree, and our shuffle agrees.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>21</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0255</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0121</dd></div>
+          <div><dt>z</dt><dd>3.23</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/U.S._Agent" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-spider-man">
+      <div class="hm-pic"><span class="ph">SM</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">expected · z = 0.40</p>
+        <h3>Spider-Man</h3>
+        <p class="hm-real">Peter Parker</p>
+        <h4>Who they are</h4>
+        <p>Peter Parker. The one everybody already knows — and, for our purposes, the most linked-to page in the network by a distance, with 106 of the other 302 characters mentioning him. His own page mentions nine. The network's centre in every sense: nobody in the giant component is more than three steps from him.</p>
+        <h4>Why they're here</h4>
+        <p>The control group, and the reason this whole section exists. Nearly a quarter of every shortest path in the Marvel universe passes through him — 0.2349, six times the next character. Then the shuffle: 200 networks where his 106 links were randomly reassigned gave an average of <strong>0.2313</strong>. He is 0.40 standard deviations from chance. The largest betweenness in the network is entirely explained by having the largest degree, and any character with 106 links here would have it. Worth holding onto when a report calls him the critical broker of the Marvel universe: true sentence, no content. Where he <em>is</em> remarkable is PageRank, because those nine out-links make him a kingmaker.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>106</dd></div>
+          <div><dt>Betweenness</dt><dd>0.2349</dd></div>
+          <div><dt>Shuffled</dt><dd>0.2313</dd></div>
+          <div><dt>z</dt><dd>0.40</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Spider-Man" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-storm">
+      <div class="hm-pic"><span class="ph">ST</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">sheltered · z = −2.11</p>
+        <h3>Storm</h3>
+        <p class="hm-real">Ororo Munroe</p>
+        <h4>Who they are</h4>
+        <p>Ororo Munroe: worshipped as a goddess in Kenya as a child, recruited into the X-Men, and one of the few members to have led the team outright. Married Black Panther and briefly ruled Wakanda alongside him. Controls weather on a scale that makes her one of the most powerful characters on this list — and one of the two least structurally interesting.</p>
+        <h4>Why they're here</h4>
+        <p>27 links and half the betweenness they predict: 0.0091 against a shuffled 0.0189, two standard deviations <em>below</em> chance. The reason is the X-Men. Her neighbours are overwhelmingly other X-Men, and X-Men pages link to each other directly, so every path that might have passed through Storm has a shortcut that does not. She appears in three of the network's six 8-cliques — the densest structures we found — which is precisely the position that destroys brokerage. Popularity inside a tight group is worth a lot socially and nothing at all as a bridge.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>27</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0091</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0189</dd></div>
+          <div><dt>z</dt><dd>−2.11</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Storm_(Marvel_Comics)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-black-cat">
+      <div class="hm-pic"><span class="ph">BC</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">sheltered · z = −2.83</p>
+        <h3>Black Cat</h3>
+        <p class="hm-real">Felicia Hardy</p>
+        <h4>Who they are</h4>
+        <p>Felicia Hardy, a cat burglar who fell for Spider-Man, worked alongside him, dated him, and never entirely stopped stealing. Her whole publishing history is tied to his: she debuted in <em>Amazing Spider-Man</em>, most of her stories are Spider-Man stories, and most of the people she knows, she knows through him. The network reproduces that relationship almost too literally.</p>
+        <h4>Why they're here</h4>
+        <p>The most sheltered character we tested. 28 links — more than Hercules — and 0.0071 betweenness against a shuffled 0.0203: a third of what her degree predicts, nearly three standard deviations below. <strong>24 of her 28 neighbours are also Spider-Man's</strong>, so almost any path near her can go through him instead, and does. Then the twist: on PageRank she is <em>fifth in the entire network</em>, ahead of Deadpool, because Spider-Man's page links to only nine characters and she is one of them. Sheltered by betweenness, kingmade by PageRank. Same character, same position, two measures, opposite answers.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>28</dd></div>
+          <div><dt>Betweenness</dt><dd>0.0071</dd></div>
+          <div><dt>Shuffled</dt><dd>0.0203</dd></div>
+          <div><dt>z</dt><dd>−2.83</dd></div>
+        </dl>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Black_Cat_(Marvel_Comics)" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+
+    <p>Spider-Man's row is the one to sit with. Nearly a quarter of all shortest paths in the Marvel universe pass through him — six times the next character — and it is, to within half a standard deviation, exactly what a randomly wired character with 106 links would have. His dominance is real and it is not information. Anyone with 106 links in this network is the broker of the Marvel universe, whoever they are.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Analysis</p>
+    <h2>Why a character with two links wins</h2>
+    <p>Rockman's <em>z</em> of 7.98 is nearly twice the next largest in the network. He has two links. The second one is the entire explanation.</p>
+
+    <figure>
+      <img src="figures/rockman.svg" alt="A small region of the network. The Witness, with one link, connects only to Rockman, who connects on to Black Widow and through her to the rest of the network. The path is highlighted in red.">
+      <figcaption>Rockman's entire neighbourhood. One link goes to Black Widow and onward to the Marvel universe; the other goes to The Witness, who has no other links at all.</figcaption>
+    </figure>
+
+    <p>The Witness has degree 1. His only link is to Rockman. So every shortest path from The Witness to each of the other 275 characters in the giant component runs through Rockman — all 275 of them. That is what betweenness measures, and he collects the lot.</p>
+    <p>In a shuffled network this almost never happens. The shuffle keeps Rockman at two links but reassigns which two, and the chance that one lands on a character with no other connection is small. His shuffled betweenness averages 0.0002; the real value is 36 times that. He is not well connected. He is a <strong>door</strong>, and being the only door to somewhere is a different kind of importance from knowing everybody.</p>
+    <p>Hercules and Black Widow are the same phenomenon at a more intuitive scale. Hercules has 26 links spread across the Avengers, the Hulk's circle, the cosmic characters and Asgard — four regions that do not otherwise talk to each other much. Black Widow's neighbours run Spider-Man, Wolverine, Doctor Strange, Deadpool, Venom, Cloak and Dagger, Hercules, Adam Warlock: no two from the same corner of the universe. Both are bridges rather than members.</p>
+
+    <h3>And why Black Cat is the opposite</h3>
+    <p>Black Cat has 28 links, more than Hercules, and a third of the betweenness her degree predicts. The reason is that <strong>24 of her 28 neighbours are also Spider-Man's</strong>. She lives inside his circle. Every path that might have gone through her has a shortcut through him instead, so her links buy popularity and nothing else. Storm is the same story inside the X-Men.</p>
+    <p>This is why "well connected" is not a definition of anything. Black Cat and Hercules have comparable degrees and opposite structural roles, and no amount of counting links tells them apart.</p>
+
+    <div class="callout">
+      <p><strong>Closeness cannot be surprised.</strong> We ran the identical test on closeness and almost nothing came out — the real values sit inside the shuffled distributions nearly everywhere, and what few outliers exist are negative.</p>
+      <p>The reason is in what each measure does with structure. Closeness is an inverse <em>mean</em> distance over 276 other characters, and in a network with diameter 6 where 86% of pairs are two or three steps apart, that mean is squeezed into a narrow band by the degree sequence alone. Betweenness is a sum over paths, where a single bottleneck can dominate. One measure averages structure away; the other concentrates it. If you want brokers, closeness is the wrong instrument — not because it is worse, but because it answers a question this network has no interesting answer to.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">The test</p>
+    <h2>Does any of it matter? We removed them and looked</h2>
+    <p>Brokerage is a story about structure, and stories about structure are cheap. If Hercules and Rockman really hold parts of the network together, removing them should break it faster than removing the popular characters. So we took the giant component apart four ways — most links first, highest betweenness first, biggest broker <em>z</em> first, random order — and watched the largest surviving piece.</p>
+
+    <figure>
+      <img src="figures/attack.svg" alt="Five curves showing the giant component shrinking as characters are removed. All decline gradually and roughly in parallel; after 40 removals the network still holds 74 to 85 percent of its nodes. No curve collapses.">
+      <figcaption>Forty removals out of 277. Targeting the hubs beats random, but nothing here is a collapse — the lines decline, they do not fall off a cliff.</figcaption>
+    </figure>
+
+    <p>The honest answer is that it barely matters. Removing the 40 highest-betweenness characters leaves 74% of the network connected in one piece. Removing 40 at random leaves 85%. Targeting helps, but the gap between the best attack we could construct and no strategy at all is eleven percentage points, and neither produces anything like fragmentation.</p>
+    <p>The single-removal version is starker. The network has only <strong>13 articulation points</strong> — characters whose removal disconnects anybody at all — out of 277. The worst is Spider-Man, and taking him out strands five characters. Black Widow strands three. Rockman, our champion broker, strands exactly one: The Witness, the person he is the door for.</p>
+    <p>So the brokerage is real but local. Rockman genuinely is the only path to The Witness, and that genuinely earns a <em>z</em> of 8 — but "the only path to one person" is its entire extent. The network is held together by redundancy, not by brokers: so many overlapping paths run through the dense middle that removing any individual just reroutes traffic.</p>
+    <p>This is the most useful thing we found, and it is a caution about our own headline. Betweenness measures how much traffic <em>currently</em> flows through you, not how much damage your absence would do. Those coincide in a sparse, tree-like network. In this one they come apart, and a report using high betweenness to argue "this character is critical infrastructure" would be wrong in a way no centrality number reveals.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Direction</p>
+    <h2>One vote from Spider-Man</h2>
+    <p>Everything above throws away the arrows. PageRank keeps them and adds one idea: a page splits its vote among its out-links, so an endorsement from somewhere selective is worth more than one from somewhere indiscriminate.</p>
+    <p>Spider-Man's page links to just nine characters. His is the largest vote in the network, divided nine ways, and you can see where it lands.</p>
+
+    <figure>
+      <img src="figures/pagerank.svg" alt="Log-log scatter of PageRank against in-degree. Black Cat and Mayday Parker sit well above the trend despite modest in-degrees.">
+      <figcaption>PageRank against in-degree. The two labelled characters rank fifth and seventh in the network on 21 and 14 in-links — both because of a single link from Spider-Man.</figcaption>
+    </figure>
+
+    <p>Black Cat is 17th by in-degree and 5th by PageRank. Mayday Parker is 33rd by in-degree and 7th. Neither is widely mentioned; both are mentioned by the most important page in the network, which mentions almost nobody.</p>
+    <p>Note what this does to Black Cat. By betweenness she is the most <em>sheltered</em> character in the network, with a third of the brokerage her degree predicts. By PageRank she is fifth most important. Both are correct. They answer different questions — <em>who has to go through you</em> versus <em>who vouches for you</em> — and her position scores one high and the other low. That is the clearest demonstration we found that these are not interchangeable rankings of the same underlying thing.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Two more</p>
+    <h2>Mixing, and the six X-Men</h2>
+    <p>Week 2 found the network mildly disassortative at <em>r</em> = −0.105, and found the degree sequence explains all of it. This week's 200 shuffles confirm it from a larger sample: −0.1217 ± 0.0125, putting the real value 1.3 standard deviations out. The curve shows the same thing in more detail.</p>
+
+    <figure>
+      <img src="figures/knn.svg" alt="Log-log plot of average neighbour degree against degree, falling from about 45 at degree 1 to about 21 at the highest degrees, with a dashed reference line at 22.25.">
+      <figcaption>Characters with one link have neighbours averaging 45.5; the hubs' neighbours average 20.8. A network with no mixing preference at all would be flat at 22.25.</figcaption>
+    </figure>
+
+    <p>The falling line looks like a finding and is not one. A character with 106 links in a network of 277 cannot have high-degree neighbours, because only 37 characters have 20 or more links in the entire network. The hubs link downward because there is nothing else to link to.</p>
+    <p>The cliques are more fun. The largest fully connected group has eight members, and there are <strong>six different ones</strong> — all X-Men, all sharing the same six-person core: Betsy Braddock, Cyclops, Emma Frost, Jean Grey, Rachel Summers and Wolverine. The eighth seat rotates between Storm, Cable, Northstar, Jubilee and Phoenix.</p>
+    <p>That is a tighter result than "the biggest clique is the X-Men." Six characters whose pages all mention each other, sitting inside a looser ring of five more. It is next week's community structure showing through early, and it is the obvious place to point the clustering surplus we have carried since week 2 — the triangles the degree sequence could not explain have to live somewhere, and a six-person mutual-admiration core is what they look like up close.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Conclusion</p>
+    <h2>What we would defend</h2>
+    <p>The finding we would put our name to is that <strong>importance here is almost entirely predicted by degree, and the exceptions are worth more than the rule</strong>. Of 277 characters, 259 have enough betweenness variance to test at all; 23 of those sit more than two standard deviations from what their degree predicts. Everyone else is their own degree wearing a different measure's name.</p>
+    <p>The one we would defend hardest is Rockman, because the number and the explanation fit exactly. A <em>z</em> of 8 at two links sounds absurd until you see that one of those links goes to someone with no other links, and then it is obvious and slightly beautiful. Betweenness was designed in 1979 to find exactly this, and it found it in a dataset nobody built for the purpose.</p>
+    <p>The one we would <em>not</em> defend is the interpretation we nearly wrote. "Rockman is critically important to the network" is what the <em>z</em>-score invites, and the removal experiment says it is false — he is critical to one person. Betweenness measures current traffic, not the cost of absence. We would not have caught that if we had stopped at the centrality table.</p>
+    <p>Carrying into week 4: the six overlapping 8-cliques, and whether the clustering surplus from week 2 lives inside structures like them. And a question this week raised and could not answer — whether the brokers bridge <em>communities</em> in a formal sense, which is exactly what next week's tools are for. Hercules looks like a yes. Rockman looks like a door to a cupboard.</p>
+  </section>
+
+  <footer>
+    <p>Code: <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week3_centrality.ipynb">the week 3 notebook</a>, which regenerates every figure here, and the shared helpers in <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/src/marvel.py">src/marvel.py</a>. The 200 shuffles are cached under <code>data/derived/</code>.</p>
+    <p>Data: the 02805 week-1 snapshot of Wikipedia's <a href="https://en.wikipedia.org/wiki/Category:Marvel_Comics_superheroes">Category:Marvel Comics superheroes</a>, frozen 26 August 2026. Article text and titles from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+    <p><a href="../week2/week2.html">← Week 2: models and null models</a> &nbsp;·&nbsp; <a href="../../">All weeks</a></p>
+  </footer>
+
+</div>
+<script src="../../assets/js/roster.js"></script>
+</body>
+</html>
