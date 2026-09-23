@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 4 · Communities — 303 Superheroes</title>
+<meta name="description" content="Louvain vs Infomap, Aristotle's traditions, the backbone breaking, and what weights change — on 1,374 philosophers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span><a href="../../">← 303 Superheroes</a></span>
+    <span>Week 4 · Communities</span>
+  </div>
+
+  <h1>Four ways to<br>cut up the<br>history of<br>philosophy</h1>
+  <p class="standfirst">We swapped the superheroes for 1,444 philosophers and asked four questions about groups. Two algorithms disagree about almost everything, Aristotle refuses to belong anywhere, and the whole picture falls apart at α = 0.05 because of a Roman doctor and a Dutch lens-grinder.</p>
+  <p class="byline">02805 Social Graphs and Interactions · DTU · week 4 · Elena, Karen, Mush</p>
+
+  <section>
+    <p class="kicker">The setup</p>
+    <h2>A different network, and why</h2>
+    <p>Marvel is out this week. Its community structure is real but weak, and the point of this week is to see groups rather than argue about whether they exist. So: every philosopher born before 1900 on Wikipedia's lists by century — 1,444 of them, with a link wherever one article links to another, and this time a <strong>weight</strong> on every link counting how many times.</p>
+    <p>The giant component holds <strong>1,374 philosophers and 9,139 links</strong>. Before anything else, the numbers our pipeline has to reproduce, all of them published independently by the course:</p>
+
+    <div class="scroll">
+    <table>
+      <tr><th>Quantity</th><th class="num">Ours</th><th class="num">Course</th><th>—</th></tr>
+      <tr><td>Giant component</td><td class="num">1,374</td><td class="num">1,374</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Links</td><td class="num">9,139</td><td class="num">9,139</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Weight range (both directions)</td><td class="num">1–24</td><td class="num">1–24</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Aristotle degree / strength</td><td class="num">300 / 521</td><td class="num">300 / 521</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Diogenes Laertius degree rank / strength rank</td><td class="num">15 / 5</td><td class="num">15 / 5</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Louvain communities, <em>Q</em></td><td class="num">8, 0.506</td><td class="num">8, 0.506</td><td><span class="tag t-live">match</span></td></tr>
+      <tr><td>Backbone α = 0.2: links / attached / giant</td><td class="num">1,540 / 950 / 816</td><td class="num">1,540 / 950 / 816</td><td><span class="tag t-live">match</span></td></tr>
+    </table>
+    </div>
+
+    <p style="margin-top:22px">Every row of the backbone table and all three weight thresholds reproduce exactly, which is the cheapest evidence available that the disparity filter is implemented right. It does not make the conclusions right — that is the rest of the page.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Question one</p>
+    <h2>Louvain and Infomap barely agree</h2>
+    <p>Two algorithms, two philosophies. Louvain maximises modularity: it wants groups with more internal links than chance predicts. Infomap compresses a random walk: it wants groups a walker gets stuck inside. They are not approximations of one another, and the places they disagree are where the network is ambiguous.</p>
+    <p>Louvain gives <strong>8 communities at Q = 0.506</strong>. Infomap gives many more modules, and the agreement between them is <strong>NMI = 0.66</strong>. For comparison, two Louvain runs with different seeds agree at 0.65–0.83 — so <em>Infomap disagrees with Louvain about as much as Louvain disagrees with itself</em>, which is either reassuring or alarming depending on how much faith you had in the partition.</p>
+
+    <figure>
+      <img src="figures/louvain_vs_infomap.svg" alt="Horizontal bars, one per Louvain community, each divided into the Infomap modules it contains. Descartes's community splits into 16 modules, Aquinas's into 18, Aristotle's into 6 with one dominant block of 234.">
+      <figcaption>Each bar is one Louvain community; each block inside it is an Infomap module. Where a bar is one solid colour the two methods agree; where it is shredded, Infomap has found structure Louvain smoothed over.</figcaption>
+    </figure>
+
+    <h3>Which one tells the better history?</h3>
+    <p>Read the bars and the answer is not the same everywhere, which is the honest version of the question.</p>
+    <p><strong>Aristotle's community survives Infomap nearly intact</strong> — 234 of its philosophers stay in one module. Greek antiquity really is a dense, self-referential region: these articles cite each other constantly, a random walker entering it does get stuck, and both methods see the same thing.</p>
+    <p><strong>Descartes's community shatters into 16 modules, Aquinas's into 18.</strong> Louvain calls early modern Europe one group. Infomap says a walker dropped into it does <em>not</em> stay put — it wanders from the rationalists to the empiricists to the political theorists, because those sub-traditions are linked to each other but not densely enough to trap anything. Both are true statements about the same links.</p>
+    <p>In network terms the difference is what each method counts. Modularity compares link counts to a degree-preserving null, so a group with more internal links than expected is a community even if it is loosely woven. The map equation asks about <em>flow</em>, and flow needs density, not just surplus. So Infomap splits exactly where Louvain's groups are big and thin — which on this network is every European tradition after 1600, because they are all connected to each other through Kant and Descartes.</p>
+    <p>Our answer: <strong>Louvain tells the better story and Infomap tells the better truth.</strong> Louvain's eight groups have names a historian would recognise — Greek antiquity, the scholastics, German idealism. Infomap's modules are more faithful to what the links actually do and much harder to narrate. If we had to publish one figure we would publish Louvain's, and we would say in the caption that Infomap cuts it into pieces.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Question two</p>
+    <h2>Which tradition is Aristotle in?</h2>
+    <p>Louvain's answer is Greek antiquity, with Plato, Cicero, Heraclitus and Socrates. That answer is a consequence of the method rather than a finding, because a partition assigns every node to exactly one community and Aristotle has 300 links.</p>
+    <p>So we drew all 300 of them, coloured by which community sits at the far end.</p>
+
+    <figure>
+      <img src="figures/aristotle.svg" alt="A radial figure with Aristotle at the centre and 300 links fanning out, coloured by the community at the other end. Red, his own community, takes 45 percent; purple for Aquinas 22 percent; blue for Descartes 11 percent; green for Kant 10 percent; teal for Russell 6 percent; brown for Maimonides 4 percent.">
+      <figcaption>Aristotle's 300 links, coloured by the Louvain community of the philosopher at the other end. His own community holds 136 of them.</figcaption>
+    </figure>
+
+    <p><strong>45%.</strong> Louvain's label describes fewer than half of his connections. The remaining 164 links run to the scholastics (67), the early moderns (34), the Germans (30), Russell's founders (17) and the Islamic and Jewish philosophers (13).</p>
+    <p>The k-clique analysis makes the same point structurally. At k = 5 Aristotle is in <strong>six separate clique communities</strong> — more than any other philosopher — and they are recognisably different worlds: one with Plato and the moderns, one with Boethius and the 12th-century School of Chartres, one with Ockham and the Oxford Calculators, one with Avicenna and al-Farabi, one with Aquinas and Averroes, and one with Husserl and Heidegger. Six traditions, twenty-three centuries, one node.</p>
+    <p>Our argument is that <strong>the question has no answer and that is the finding</strong>. Aristotle is not badly classified by Louvain; he is unclassifiable by any partition, because he is the thing six traditions were built on top of. The overlap methods are not a better tool for finding his community — they are the tools that can say he has six. A method that returns one community for Aristotle is not wrong about the network, it is answering a different question, and the 45% figure is how you tell.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Question three</p>
+    <h2>Where the backbone breaks, and who breaks it</h2>
+    <p>The full network is a hairball — 9,139 links, most of them weight 1 and most of those a single passing mention. The disparity filter cuts it down per node rather than globally, so a minor philosopher's only meaningful tie survives alongside a hub's important ones.</p>
+
+    <figure class="wide">
+      <img src="figures/backbone.svg" alt="Four panels. Three network drawings at alpha 0.05, 0.10 and 0.20 showing the backbone growing from scattered fragments to a connected structure, and a fourth panel plotting giant component size against alpha with a sharp rise marked just above 0.05.">
+      <figcaption>The disparity-filter backbone at three settings, and the giant component as a function of α. At 0.05 the picture is fragments; at 0.20 it is a connected map of philosophy. The whole figure is the same network.</figcaption>
+    </figure>
+
+    <p>Reading left to right: at <strong>α = 0.05</strong>, 292 links survive, 348 philosophers keep one, and the largest connected piece is 116. At <strong>α = 0.10</strong>, 649 links, 607 attached, giant 419. At <strong>α = 0.20</strong>, 1,540 links, 950 attached, giant 816 — the setting where the drawing finally shows traditions rather than dust.</p>
+
+    <h3>The break</h3>
+    <p>Sweeping α in steps of 0.005 finds the sharpest single jump between <strong>α = 0.050 and α = 0.055</strong>, where the giant component goes from <strong>116 to 178</strong> philosophers. That is the percolation point: below it the backbone is a collection of separate traditions, above it they are one object.</p>
+    <p>And the links that close it are not the hubs'. The ties that appear across the threshold and join two previously separate pieces belong to <strong>Galen</strong> and <strong>Baruch Spinoza</strong>, two each.</p>
+    <p>Galen's are weight-2 ties to Hunayn ibn Ishaq, al-Razi and Paracelsus — the Greek medical tradition reaching the Islamic one and then the Renaissance. He ranks 55th by degree. Spinoza's run to Leibniz behind him and Hegel and George Eliot ahead, stitching early modern rationalism to German idealism. Neither is a hub in the way Aristotle or Kant is; both sit on a seam.</p>
+    <p>That is the disparity filter earning its keep. A global threshold at w ≥ 3 keeps a similar number of links and drops 87 more philosophers, because it judges a weight of 2 by the standard of Aristotle's strength of 521. For Galen a 2 is a significant share of 85. The philosophers who hold the picture together are exactly the ones a global threshold throws away.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Question four</p>
+    <h2>Do the weights tell a different story?</h2>
+    <p>Yes, and not a subtle one. Weighted Louvain finds <strong>9 communities at a weighted Q of 0.56</strong> against the unweighted 8 at 0.506 — and those two numbers should not be compared, since strong ties concentrate inside groups almost by construction and the weighted score has a higher ceiling. The comparison that means something is the NMI between the two partitions: <strong>0.66</strong>.</p>
+    <figure>
+      <img src="figures/strength_degree.svg" alt="Log-log scatter of strength against degree for 1,374 philosophers, tight around a diagonal, with Diogenes Laertius labelled well above it.">
+      <figcaption>Strength against degree. They rank philosophers almost identically (Spearman 0.96) — which is why the outliers matter: Diogenes Laertius is 15th by degree and 5th by strength, because ancient philosophers' articles cite him over and over.</figcaption>
+    </figure>
+
+    <p>That is the same number as Louvain vs Infomap. Switching the weights on disagrees with the unweighted partition exactly as much as switching the entire algorithm does. <strong>376 of 1,374 philosophers change community.</strong></p>
+
+    <figure>
+      <img src="figures/movers.svg" alt="Horizontal bars for fourteen philosophers who change community, each labelled with their unweighted home in grey and their weighted home in red, with bar length showing strength.">
+      <figcaption>Philosophers who change community when the weights are switched on, from one run. Grey is the unweighted home, red the weighted one, bar length is strength.</figcaption>
+    </figure>
+
+    <p>The movers are not random. They cluster on the seams between traditions, and most of them move <em>toward Kant</em> — Spinoza, Machiavelli, Kitarō Nishida and, in our run, Descartes himself. The mechanism is that weighted Louvain follows thick ties, and the German tradition's internal citations are unusually heavy: philosophers who cite each other repeatedly, in articles that discuss the same arguments over and over. A philosopher whose links are many but thin stays where the unweighted partition put them; one whose heaviest few links point into Germany gets pulled in.</p>
+    <p>So the weighted network tells a story about <em>influence density</em> and the unweighted one tells a story about <em>breadth of contact</em>. Descartes touches the whole Enlightenment lightly and Kant's circle heavily. Both are true; the weighting decides which one the partition reports.</p>
+
+    <div class="callout">
+      <p><strong>A caveat we cannot get rid of.</strong> Which philosophers appear in that figure depends on the seed. Louvain is stochastic, two runs agree at NMI 0.65–0.83, and the movers on the borders are precisely the nodes whose assignment is least stable. We checked: in a second run Averroes moves and Spinoza does not, and in this run it is the reverse.</p>
+      <p>The <em>count</em> is stable at around 376, and so is the pattern — movers are border philosophers, and they move toward the heavy-tie communities. The individual names are one run's names. We are reporting them because they are illustrative, not because they are the answer, and a consensus over many runs would be the honest version of this figure.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">The cast</p>
+    <h2>The philosophers behind the numbers</h2>
+    <p>Everything above is about positions in a graph. This is about the people who occupy them — who they were, what they changed, and why the links fall the way they do.</p>
+
+    <h3 class="roster-head">Ten philosophers this week is about</h3>
+    <p class="roster-legend">Who they were, what they changed, and why the network puts them where it does. Click anyone.</p>
+
+    <div class="roster">
+      <button class="hero" type="button" data-hero="aristotle" data-name="Aristotle" style="--c1:#6B2E1F;--c2:#D9A441" aria-label="Aristotle, the hub — open details">
+        <span class="hero-name">Aristotle</span>
+        <span class="hero-portrait"><span class="ph">AR</span></span>
+        <span class="tag t-live">the hub</span>
+      </button>
+      <button class="hero" type="button" data-hero="diogenes" data-name="Diogenes Laertius" style="--c1:#1F4A4A;--c2:#C9A227" aria-label="Diogenes Laertius, the source — open details">
+        <span class="hero-name">Diogenes Laertius</span>
+        <span class="hero-portrait"><span class="ph">DL</span></span>
+        <span class="tag t-live">the source</span>
+      </button>
+      <button class="hero" type="button" data-hero="galen" data-name="Galen" style="--c1:#4A1F2B;--c2:#B5654A" aria-label="Galen, breaks the backbone — open details">
+        <span class="hero-name">Galen</span>
+        <span class="hero-portrait"><span class="ph">GA</span></span>
+        <span class="tag t-free">breaks the backbone</span>
+      </button>
+      <button class="hero" type="button" data-hero="spinoza" data-name="Baruch Spinoza" style="--c1:#1B2F4A;--c2:#7FA8C9" aria-label="Baruch Spinoza, breaks the backbone — open details">
+        <span class="hero-name">Baruch Spinoza</span>
+        <span class="hero-portrait"><span class="ph">BS</span></span>
+        <span class="tag t-free">breaks the backbone</span>
+      </button>
+      <button class="hero" type="button" data-hero="avicenna" data-name="Avicenna" style="--c1:#1F3D2E;--c2:#C9A227" aria-label="Avicenna, the bridge — open details">
+        <span class="hero-name">Avicenna</span>
+        <span class="hero-portrait"><span class="ph">AV</span></span>
+        <span class="tag t-live">the bridge</span>
+      </button>
+      <button class="hero" type="button" data-hero="averroes" data-name="Averroes" style="--c1:#3D2B1F;--c2:#C98A3C" aria-label="Averroes, the commentator — open details">
+        <span class="hero-name">Averroes</span>
+        <span class="hero-portrait"><span class="ph">AVR</span></span>
+        <span class="tag t-live">the commentator</span>
+      </button>
+      <button class="hero" type="button" data-hero="aquinas" data-name="Thomas Aquinas" style="--c1:#2E1F4A;--c2:#9B7FC9" aria-label="Thomas Aquinas, the scholastic — open details">
+        <span class="hero-name">Thomas Aquinas</span>
+        <span class="hero-portrait"><span class="ph">TA</span></span>
+        <span class="tag t-live">the scholastic</span>
+      </button>
+      <button class="hero" type="button" data-hero="descartes" data-name="René Descartes" style="--c1:#1F3A4A;--c2:#6FA6B8" aria-label="René Descartes, moves with weights — open details">
+        <span class="hero-name">René Descartes</span>
+        <span class="hero-portrait"><span class="ph">RD</span></span>
+        <span class="tag t-dead">moves with weights</span>
+      </button>
+      <button class="hero" type="button" data-hero="kant" data-name="Immanuel Kant" style="--c1:#2B3D1F;--c2:#A8BF6A" aria-label="Immanuel Kant, the attractor — open details">
+        <span class="hero-name">Immanuel Kant</span>
+        <span class="hero-portrait"><span class="ph">IK</span></span>
+        <span class="tag t-live">the attractor</span>
+      </button>
+      <button class="hero" type="button" data-hero="confucius" data-name="Confucius" style="--c1:#4A2B1F;--c2:#C9863C" aria-label="Confucius, the island — open details">
+        <span class="hero-name">Confucius</span>
+        <span class="hero-portrait"><span class="ph">CF</span></span>
+        <span class="tag t-free">the island</span>
+      </button>
+    </div>
+
+    <template id="hero-aristotle">
+      <div class="hm-pic"><span class="ph">AR</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the hub · Aristotle's community</p>
+        <h3>Aristotle</h3>
+        <p class="hm-real">384–322 BC · Greek antiquity</p>
+        <h4>Who they are</h4>
+        <p>Plato's student, Alexander's tutor, and the man who wrote the first systematic treatment of more or less everything: logic, physics, biology, ethics, politics, rhetoric, poetics. His syllogism was the whole of formal logic for two thousand years. Aquinas calls him simply <em>the Philosopher</em>, no name needed, and gets away with it.</p>
+        <h4>Why they're here</h4>
+        <p>The largest node in the network by both measures — 300 links and strength 521, first on both lists, and no second place is close. But the reason he matters here is the one thing a partition cannot handle: Louvain puts him in Greek antiquity, and that community holds only <strong>45% of his links</strong>. The other 55% run to Aquinas's scholastics, Descartes's early moderns, Kant's Germans and Russell's founders. He is not in a tradition. He is the thing the traditions are arguing about.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>300</dd></div>
+          <div><dt>Strength</dt><dd>521</dd></div>
+          <div><dt>Degree rank</dt><dd>#1</dd></div>
+          <div><dt>Strength rank</dt><dd>#1</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Heraclitus (13), Theophrastus (10), Xenophanes (9)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Aristotle" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-diogenes">
+      <div class="hm-pic"><span class="ph">DL</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the source · Aristotle's community</p>
+        <h3>Diogenes Laertius</h3>
+        <p class="hm-real">3rd century AD · biographer</p>
+        <h4>Who they are</h4>
+        <p>Not really a philosopher at all — a biographer, and a famously uncritical one. His <em>Lives of the Eminent Philosophers</em> gossips its way through eighty-odd thinkers, quoting letters and wills and deathbed jokes. For a great many ancient philosophers it is the only source that survives, which means a lot of what anybody knows about early Greek thought rests on a man who believed most of what he was told.</p>
+        <h4>Why they're here</h4>
+        <p>The clearest case in the network of strength saying something degree cannot. He ranks <strong>15th by degree</strong> with 91 links, but <strong>5th by strength</strong> at 230 — his links are thick because ancient philosophers' articles cite him over and over, each citation another mention. Degree counts how many people you are connected to; strength counts how much. For Diogenes those are very different numbers, and the gap is exactly his role as everyone's footnote.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>91</dd></div>
+          <div><dt>Strength</dt><dd>230</dd></div>
+          <div><dt>Degree rank</dt><dd>#15</dd></div>
+          <div><dt>Strength rank</dt><dd>#5</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Thales of Miletus (8), Chrysippus (6), Epicharmus of Cos (6)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Diogenes_Laertius" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-galen">
+      <div class="hm-pic"><span class="ph">GA</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">breaks the backbone · Aristotle's community</p>
+        <h3>Galen</h3>
+        <p class="hm-real">129–c. 216 AD · medicine</p>
+        <h4>Who they are</h4>
+        <p>Physician to gladiators and then to emperors, and the author of an anatomy so authoritative that European medicine simply repeated it for thirteen hundred years — including the errors, since he had dissected pigs and apes rather than people. Also a serious logician who insisted that a doctor must be a philosopher.</p>
+        <h4>Why they're here</h4>
+        <p>One of the two philosophers whose links close the backbone. At α = 0.05 the disparity-filtered network is in pieces, with a largest component of 116; push α up and Galen's weight-2 ties to Hunayn ibn Ishaq, al-Razi and Paracelsus become significant and stitch the Greek and Islamic medical traditions back together. He has only 49 links and ranks 55th — but they sit exactly where two traditions meet, which is why they are the ones holding the picture together.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>49</dd></div>
+          <div><dt>Strength</dt><dd>85</dd></div>
+          <div><dt>Degree rank</dt><dd>#55</dd></div>
+          <div><dt>Strength rank</dt><dd>#57</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Hunayn ibn Ishaq (7), Abu Bakr al-Razi (5), Aristotle (5)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Galen" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-spinoza">
+      <div class="hm-pic"><span class="ph">BS</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">breaks the backbone · Immanuel Kant's community</p>
+        <h3>Baruch Spinoza</h3>
+        <p class="hm-real">1632–1677 · rationalism</p>
+        <h4>Who they are</h4>
+        <p>Excommunicated by Amsterdam's Jewish community at 23 and never took another institutional post, grinding optical lenses for a living instead. The <em>Ethics</em> argues, in the format of Euclid's geometry, that God and nature are the same substance — a claim that made him a byword for atheism for a century and then made him the hero of the German Romantics.</p>
+        <h4>Why they're here</h4>
+        <p>The other philosopher whose links close the break. 103 links and strength 178, ninth by degree — a substantial node, but the interesting thing is <em>where</em> he sits. His strongest ties run backwards to Leibniz and forwards to Hegel and George Eliot, which is to say across the seam between early modern rationalism and German idealism. When the backbone comes apart at α = 0.05, that seam is one of the first things to tear, and Spinoza's ties are what mend it.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>103</dd></div>
+          <div><dt>Strength</dt><dd>178</dd></div>
+          <div><dt>Degree rank</dt><dd>#9</dd></div>
+          <div><dt>Strength rank</dt><dd>#12</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Gottfried Wilhelm Leibniz (8), Georg Wilhelm Friedrich Hegel (5), George Eliot (5)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Baruch_Spinoza" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-avicenna">
+      <div class="hm-pic"><span class="ph">AV</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the bridge · Avicenna's community</p>
+        <h3>Avicenna</h3>
+        <p class="hm-real">c. 980–1037 · Islamic golden age</p>
+        <h4>Who they are</h4>
+        <p>Ibn Sina, who allegedly memorised the Quran by ten and had exhausted his tutors by fourteen. Wrote the <em>Canon of Medicine</em>, a standard European textbook into the 1600s, and <em>The Book of Healing</em>, which fused Aristotle with Islamic theology thoroughly enough that Aquinas had to argue with him to get Aristotle back. The floating-man thought experiment is his.</p>
+        <h4>Why they're here</h4>
+        <p>Louvain names a whole community after him, and it is the one the course page calls out as the group nobody would name: the Islamic and Jewish philosophers — Averroes, Maimonides, al-Ghazali — sitting together with Galileo, Copernicus and Francis Bacon. That is not a school. It is a transmission route, Greek thought reaching the Renaissance through Arabic commentary, and the network has found the route rather than the school. A good reminder that a community is a dense region, not a label with a meaning attached.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>65</dd></div>
+          <div><dt>Strength</dt><dd>131</dd></div>
+          <div><dt>Degree rank</dt><dd>#33</dd></div>
+          <div><dt>Strength rank</dt><dd>#29</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Al-Farabi (8), Omar Khayyam (7), Averroes (6)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Avicenna" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-averroes">
+      <div class="hm-pic"><span class="ph">AVR</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the commentator · Avicenna's community</p>
+        <h3>Averroes</h3>
+        <p class="hm-real">1126–1198 · Córdoba</p>
+        <h4>Who they are</h4>
+        <p>Ibn Rushd, judge and court physician in Almohad Córdoba, who spent his life writing commentaries on Aristotle so thorough that Latin Europe called him simply <em>the Commentator</em>. He argued against al-Ghazali that philosophy and revelation cannot contradict each other because both are true. Condemned late in life, his books burned in Islamic Spain — and copied enthusiastically in Paris.</p>
+        <h4>Why they're here</h4>
+        <p>Sits in Avicenna's community with 55 links and strength 116, and his strongest ties are the argument itself: al-Ghazali at weight 10 (the man he was refuting) and Thomas Aquinas at 9 (the man refuting him). Weight-10 and weight-9 links between people who disagreed violently. It is the clearest illustration in the network that a strong tie means <em>entangled</em>, not <em>allied</em> — an intellectual feud generates as many mentions as a friendship.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>55</dd></div>
+          <div><dt>Strength</dt><dd>116</dd></div>
+          <div><dt>Degree rank</dt><dd>#42</dd></div>
+          <div><dt>Strength rank</dt><dd>#35</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Al-Ghazali (10), Thomas Aquinas (9), Al-Farabi (7)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Averroes" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-aquinas">
+      <div class="hm-pic"><span class="ph">TA</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the scholastic · Thomas Aquinas's community</p>
+        <h3>Thomas Aquinas</h3>
+        <p class="hm-real">1225–1274 · scholasticism</p>
+        <h4>Who they are</h4>
+        <p>A Dominican friar so quiet as a student that classmates called him the dumb ox. The <em>Summa Theologiae</em> is a machine for arguing: every question posed, the objections stated at their strongest, then the reply. He took Aristotle — newly arrived through Arabic commentary and regarded with suspicion — and made him the backbone of Christian theology.</p>
+        <h4>Why they're here</h4>
+        <p>Anchors the community that runs from Augustine through Dante to Luther and Erasmus, 115 links and strength 200. His strongest tie is to Averroes at weight 9, which is the same fact from the other side of Averroes's card: the two are bound together in the network because Aquinas spent the <em>Summa contra Gentiles</em> arguing with him. Two philosophers, two religions, one of the thickest links in the dataset.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>115</dd></div>
+          <div><dt>Strength</dt><dd>200</dd></div>
+          <div><dt>Degree rank</dt><dd>#5</dd></div>
+          <div><dt>Strength rank</dt><dd>#7</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Averroes (9), Thomas Cajetan (7), Aristotle (6)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Thomas_Aquinas" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-descartes">
+      <div class="hm-pic"><span class="ph">RD</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">moves with weights · René Descartes's community</p>
+        <h3>René Descartes</h3>
+        <p class="hm-real">1596–1650 · early modern</p>
+        <h4>Who they are</h4>
+        <p>Soldier, then recluse, who wanted to rebuild knowledge from nothing after doubting everything he could — and found that the doubting itself was the one thing he could not doubt. <em>Cogito ergo sum.</em> Also invented the coordinate system every plot on this page is drawn in, which is a decent day's work on its own.</p>
+        <h4>Why they're here</h4>
+        <p>Names his own community in the unweighted network — early modern Europe and the Enlightenment, with Leibniz, Spinoza, Locke, Hume and Voltaire. Switch the weights on and in our run he moves into Kant's German community, one of 376 philosophers who change. The move is not arbitrary: weighted Louvain follows thick ties, and the thickest things attached to Descartes point forward into German idealism rather than sideways into the Enlightenment. Which home is right depends entirely on which question you asked.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>114</dd></div>
+          <div><dt>Strength</dt><dd>176</dd></div>
+          <div><dt>Degree rank</dt><dd>#6</dd></div>
+          <div><dt>Strength rank</dt><dd>#15</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Gottfried Wilhelm Leibniz (7), Nicolas Malebranche (7), Blaise Pascal (6)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/René_Descartes" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-kant">
+      <div class="hm-pic"><span class="ph">IK</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the attractor · Immanuel Kant's community</p>
+        <h3>Immanuel Kant</h3>
+        <p class="hm-real">1724–1804 · German idealism</p>
+        <h4>Who they are</h4>
+        <p>Never travelled more than about a hundred miles from Königsberg and reportedly kept a schedule the neighbours set their clocks by. Then wrote the <em>Critique of Pure Reason</em>, which argues that the mind imposes the structure of space, time and causation on experience rather than reading it off the world — and split philosophy into before and after.</p>
+        <h4>Why they're here</h4>
+        <p>Third by both degree (201) and strength (344), and the destination of choice when the weights come on: Spinoza, Machiavelli, Kitarō Nishida and Descartes himself all land in his community in the weighted run. That is what a weighted partition does — it follows the heavy ties, and the German tradition's internal citations are unusually heavy. Kant does not gain links. He gains the philosophers whose heaviest links happen to point his way.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>201</dd></div>
+          <div><dt>Strength</dt><dd>344</dd></div>
+          <div><dt>Degree rank</dt><dd>#3</dd></div>
+          <div><dt>Strength rank</dt><dd>#3</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Karl Leonhard Reinhold (8), David Hume (7), Emanuel Swedenborg (7)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Immanuel_Kant" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+    <template id="hero-confucius">
+      <div class="hm-pic"><span class="ph">CF</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">the island · Confucius's community</p>
+        <h3>Confucius</h3>
+        <p class="hm-real">551–479 BC · China</p>
+        <h4>Who they are</h4>
+        <p>Kongzi, an unsuccessful official who spent his career failing to get rulers to listen and became, posthumously, the organising figure of Chinese civil and ethical life for two millennia. The <em>Analects</em> is not a system but a collection of remarks, compiled by students, about how to behave.</p>
+        <h4>Why they're here</h4>
+        <p>Anchors one of the two communities every method agrees on. Louvain and Infomap disagree about almost everything — NMI 0.66, and Infomap cuts Descartes's community into sixteen pieces — but the Chinese and Indian groups survive both, because they are genuinely near-separate regions of Wikipedia rather than dense patches inside a connected argument. Only 36 links and strength 65, ranked 90th; the community's coherence comes from its isolation, not its size.</p>
+        <dl class="hm-stats">
+          <div><dt>Degree</dt><dd>36</dd></div>
+          <div><dt>Strength</dt><dd>65</dd></div>
+          <div><dt>Degree rank</dt><dd>#90</dd></div>
+          <div><dt>Strength rank</dt><dd>#89</dd></div>
+        </dl>
+        <h4>Strongest ties</h4>
+        <p>Laozi (8), Zichan (7), Zengzi (5)</p>
+        <a class="hm-wiki" href="https://en.wikipedia.org/wiki/Confucius" target="_blank" rel="noopener">Their Wikipedia page →</a>
+      </div>
+    </template>
+  </section>
+
+  <section>
+    <p class="kicker">Conclusion</p>
+    <h2>What four questions had in common</h2>
+    <p>We asked four unrelated things and got the same shape of answer each time: <strong>the method is a question, and the network gives a different answer to each one.</strong> Louvain and Infomap disagree at NMI 0.66. Weighted and unweighted Louvain disagree at NMI 0.66. Aristotle's Louvain label covers 45% of his links, and k-cliques give him six communities instead of one. Change α from 0.05 to 0.055 and a fragmented picture becomes a connected one.</p>
+    <p>None of these is a case of one method being broken. Modularity and the map equation measure different things; weights and counts measure different things; a partition and an overlap are different objects. The failure mode is not choosing wrong — it is reporting one and calling it the structure.</p>
+    <p>The result we would defend hardest is the Aristotle figure, because the number is unarguable. 45% is not a close call. Any sentence of the form "Aristotle belongs to the Greek tradition," delivered by an algorithm, is discarding more than half the evidence, and the figure shows exactly how much.</p>
+    <p>And the one that surprised us most is Galen. We expected the backbone to break at a hub. It breaks at a 2nd-century physician ranked 55th by degree, whose weight-2 links happen to sit where Greek medicine meets Arabic. Importance of the kind that holds a picture together is not the same as importance of the kind that shows up in a ranking — which is the same lesson week 3 ended on, arrived at from the opposite direction.</p>
+  </section>
+
+  <footer>
+    <p>Code: <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week4_communities.ipynb">the week 4 notebook</a>, which regenerates every figure here, and the shared helpers in <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/src/marvel.py">src/marvel.py</a>.</p>
+    <p>Data: the 02805 week-4 philosopher snapshot, frozen 15 September 2026 — everyone on Wikipedia's lists of philosophers by century, born before 1900, with redirects resolved. Article text and titles from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+    <p><a href="../week3/week3.html">← Week 3: who matters, and why</a> &nbsp;·&nbsp; <a href="../../">All weeks</a></p>
+  </footer>
+
+</div>
+<script src="../../assets/js/roster.js"></script>
+</body>
+</html>
