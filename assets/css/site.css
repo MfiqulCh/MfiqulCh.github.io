@@ -180,3 +180,17 @@ body.hm-lock{overflow:hidden}
 @media (prefers-reduced-motion: reduce){
   .hm-card,.hm-overlay,.hero-portrait{transition:none}
 }
+
+/* --- week 5: quoted sentences inside the dossier --- */
+.hm-text p.hm-quote{font-style:italic;color:#fff;border-left:2px solid var(--c2);padding:2px 0 2px 12px;margin:10px 0 0}
+.hm-text p.hm-quote span{display:block;font-style:normal;font-size:.8rem;color:rgba(255,255,255,.62);margin-top:4px}
+
+/* the figure.wide rule above is declared after the base @media block, so it
+   used to win on phones and push wide figures past the screen edge.
+   Re-assert the phone behaviour last. */
+@media (max-width:760px){
+  figure.wide{margin-left:0;margin-right:0}
+}
+
+/* long file paths in running text must be allowed to wrap on phones */
+p code, li code{overflow-wrap:anywhere}

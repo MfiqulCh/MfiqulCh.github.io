@@ -242,3 +242,152 @@ def zscore(real: float, null_values) -> float:
     a = np.asarray(null_values, dtype=float)
     sd = a.std()
     return float("nan") if sd < 1e-12 else (real - a.mean()) / sd
+
+
+# --------------------------------------------------------------------------
+# the philosopher network (week 4)
+# --------------------------------------------------------------------------
+def load_philosophers_nodes() -> pd.DataFrame:
+    """1,444 philosophers born before 1900, with era and subfield labels."""
+    return pd.read_csv(DATA / "week4_philosophers_nodes.tsv", sep="\t",
+                       comment="#", quoting=3)
+
+
+def load_philosophers(weighted: bool = True) -> nx.Graph:
+    """
+    The undirected philosopher network, weights summed over both directions.
+
+    The edge file is directed and carries a weight (how many times A's article
+    links to B's). The course works with the undirected version, so an A->B of
+    3 and a B->A of 2 become one link of weight 5. Self-loops are dropped.
+
+    Nodes are added before the edges, same as the Marvel loader: some
+    philosophers appear in neither column and would vanish silently otherwise.
+    """
+    nodes = load_philosophers_nodes()
+    edges = pd.read_csv(DATA / "week4_philosophers_edges.tsv", sep="\t",
+                        comment="#", quoting=3)
+
+    G = nx.Graph()
+    G.add_nodes_from(nodes.node_id)
+    for s, t, w in edges.itertuples(index=False):
+        if s == t:
+            continue
+        if G.has_edge(s, t):
+            G[s][t]["weight"] += w
+        else:
+            G.add_edge(s, t, weight=w)
+
+    if not weighted:
+        nx.set_edge_attributes(G, 1, "weight")
+
+    nx.set_node_attributes(G, dict(zip(nodes.node_id, nodes.name)), "name")
+    nx.set_node_attributes(G, dict(zip(nodes.node_id, nodes.era)), "era")
+    nx.set_node_attributes(G, dict(zip(nodes.node_id, nodes.subfields.fillna("none"))),
+                           "subfields")
+    return G
+
+
+def disparity_filter(G, alpha: float):
+    """
+    Serrano, Boguna & Vespignani (2009). Per-node null: node i's strength is
+    spread uniformly at random over its k_i links, so the chance one link gets
+    a share of at least p_ij = w_ij/s_i is (1 - p_ij)^(k_i - 1). Keep a link if
+    it is significant at EITHER end — that is what stops the backbone from
+    becoming the hubs talking to each other.
+
+    Returns the filtered graph (isolated nodes dropped).
+    """
+    strength = dict(G.degree(weight="weight"))
+    degree = dict(G.degree())
+
+    def p_value(v, w):
+        k = degree[v]
+        return 1.0 if k < 2 else (1 - w / strength[v]) ** (k - 1)
+
+    H = nx.Graph()
+    for a, b, d in G.edges(data=True):
+        w = d["weight"]
+        if min(p_value(a, w), p_value(b, w)) < alpha:
+            H.add_edge(a, b, weight=w)
+    return H
+
+
+def infomap_communities(G, weighted: bool = False, seed: int = 1, trials: int = 10):
+    """
+    Infomap (Rosvall & Bergstrom 2008): communities as compression. Returns a
+    dict node -> module id. Requires `pip install infomap`.
+    """
+    import infomap as _ifm
+    im = _ifm.Infomap(silent=True, num_trials=trials, seed=seed, two_level=True)
+    idx = {v: i for i, v in enumerate(G.nodes())}
+    for a, b, d in G.edges(data=True):
+        im.add_link(idx[a], idx[b], float(d["weight"]) if weighted else 1.0)
+    im.run()
+    back = {i: v for v, i in idx.items()}
+    return {back[nd.node_id]: nd.module_id for nd in im.tree if nd.is_leaf}
+
+
+# --------------------------------------------------------------------------
+# the Marvel pages as text (week 5)
+# --------------------------------------------------------------------------
+def load_pages() -> dict:
+    """
+    The 303 plain-text Wikipedia articles, keyed by node_id.
+
+    Filenames are URL-encoded node ids (a few titles contain characters a
+    filesystem refuses, e.g. Mark_Hazzard%3A_Merc), so the stem is unquoted to
+    join straight onto the network.
+    """
+    import zipfile
+    import urllib.parse
+    pages = {}
+    with zipfile.ZipFile(DATA / "marvel_pages.zip") as z:
+        for f in z.namelist():
+            if f.endswith(".txt") and not f.endswith("README.txt"):
+                nid = urllib.parse.unquote(f.split("/", 1)[1][:-4])
+                pages[nid] = z.read(f).decode("utf-8")
+    return pages
+
+
+_ABBR = ["No", "Vol", "Dr", "Mr", "Mrs", "Ms", "St", "vs", "Jr", "Sr", "Prof", "Gen", "Capt",
+         "Lt", "Sgt", "Col", "Mt", "Inc", "Ltd", "Co", "ca", "c", "e.g", "i.e", "etc", "Jan",
+         "Feb", "Mar", "Apr", "Aug", "Sept", "Sep", "Oct", "Nov", "Dec"]
+
+
+def split_sentences(text: str) -> list:
+    """
+    A deliberately simple, rule-based sentence splitter.
+
+    Paragraphs first (Wikipedia plain text puts headings and paragraphs on their
+    own lines), then split after . ! ? when the next character starts a
+    sentence. Abbreviations ("No. 1", "Vol. 2") and initials ("U.S.A.") are
+    protected first. It is a stated preprocessing choice, not a model: no
+    downloaded data, identical on every machine, and wrong in ways you can see.
+    """
+    import re
+    abbr = re.compile(r"\b(" + "|".join(re.escape(a) for a in _ABBR) + r")\.")
+    initials = re.compile(r"\b((?:[A-Z]\.){1,4})")
+    out = []
+    for para in re.split(r"\n+", text):
+        para = para.strip()
+        if not para:
+            continue
+        p = abbr.sub(lambda m: m.group(1) + "<DOT>", para)
+        p = initials.sub(lambda m: m.group(1).replace(".", "<DOT>"), p)
+        for s in re.split(r"(?<=[.!?])\s+(?=[\"“(A-Z0-9])", p):
+            s = s.replace("<DOT>", ".").strip()
+            if s:
+                out.append(s)
+    return out
+
+
+def wilson(k: int, n: int, z: float = 1.96):
+    """Wilson score interval for a proportion k/n — honest error bars on small samples."""
+    if n == 0:
+        return (float("nan"), float("nan"))
+    p = k / n
+    den = 1 + z * z / n
+    mid = (p + z * z / (2 * n)) / den
+    half = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / den
+    return (mid - half, mid + half)

@@ -13,6 +13,9 @@ this repo is where we take it apart, one post per week.
 |---|---|---|
 | **Week 1** | Networks — degrees, distributions, components | [post](https://mfiqulch.github.io/weeks/week1/week1.html) · [notebook](notebooks/week1_marvel_network.ipynb) |
 | **Week 2** | Models and null models — auditing week 1 | [post](https://mfiqulch.github.io/weeks/week2/week2.html) · [notebook](notebooks/week2_null_models.ipynb) |
+| **Week 3** | Who matters, and why — centrality against the right null | [post](https://mfiqulch.github.io/weeks/week3/week3.html) · [notebook](notebooks/week3_centrality.ipynb) |
+| **Week 4** | Communities — on 1,444 philosophers | [post](https://mfiqulch.github.io/weeks/week4/week4.html) · [notebook](notebooks/week4_communities.ipynb) |
+| **Week 5** | Friends, foes and family — every link typed from its sentence | [post](https://mfiqulch.github.io/weeks/week5/week5.html) · [notebook](notebooks/week5_relationships.ipynb) |
 
 ## How this fits together
 

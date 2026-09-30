@@ -1,0 +1,132 @@
+# 02805 week 5 - hand-graded validation sample of the keyword relation labels.
+# Rule: a label is correct only if the sentence puts the TARGET in that relationship
+# with the SOURCE page's own subject (or that subject's side in the scene described).
+# 'media' is correct if the mention is publication context, not a story relationship.
+# Round 1: 68 edges, labeller v1. Round 2: 56 fresh edges after three fixes (no 'clone',
+# name-like parenthetical aliases only, keyword credited to the nearest character).
+# Graded by the group's coding agent (Claude) reading each sentence against the rule.
+round	source	target	label	correct	why_wrong
+1	Star_Brand	Ghost_Rider	enemy	1	
+1	Gladiator_(Kallark)	Phoenix_Force	enemy	1	
+1	Janice_Lincoln	Black_Widow_(Natasha_Romanova)	enemy	1	
+1	War_Machine	Radioactive_Man_(comics)	enemy	1	
+1	Typeface_(character)	Spider-Man	enemy	1	
+1	Red_Wolf_(comics)	Hulk	enemy	1	
+1	Arabian_Knight_(character)	Black_Panther_(character)	enemy	1	
+1	Nova_(Richard_Rider)	Powerhouse_(Marvel_Comics)	enemy	1	
+1	Ghost_Rider_(Johnny_Blaze)	Hulk	enemy	1	
+1	Turbo_(comics)	Nova_(Richard_Rider)	enemy	0	attacked by the Air Force while training with Nova - Nova is an ally
+1	Betsy_Braddock	Phoenix_Force	enemy	1	
+1	Devil_Hulk	Hulk	enemy	1	
+1	Darkhawk	Black_Bolt	ally	1	
+1	Red_Wolf_(comics)	Doctor_Strange	ally	1	
+1	Starhawk_(character)	Star-Lord	ally	1	
+1	Kid_Colt	Two-Gun_Kid	ally	1	
+1	Robbie_Baldwin	Darkhawk	ally	1	
+1	Cloak_and_Dagger_(characters)	Hulk	ally	0	battled the Hulk android alongside the Avengers - the Hulk is an opponent
+1	Killpower	Motormouth_(comics)	ally	1	
+1	Anole_(character)	Hellion_(character)	ally	1	
+1	Iron_Fist_(character)	Power_Man_(Victor_Alvarez)	ally	1	
+1	Shamrock_(comics)	Arabian_Knight_(character)	ally	1	
+1	Mania_(character)	Spider-Man	ally	1	
+1	Gladiator_(Kallark)	Spider-Man	ally	1	
+1	Scarlet_Witch	Jericho_Drumm	family	0	'brother' is Jericho Drumm's own brother, not the Scarlet Witch's
+1	Ghost_Rider	Ghost_Rider_(Danny_Ketch)	family	0	mother of Blaze and Ketch - kinship between them, not with the page's subject
+1	Cable_(character)	Rachel_Summers	family	1	
+1	Franklin_Richards_(character)	Rachel_Summers	family	1	
+1	Spider-Girl	Spider-Woman_(Gwen_Stacy)	family	1	
+1	Frankenstein's_Monster_(Marvel_Comics)	Bucky_(Marvel_Comics)	family	0	'Nazi clone' - an enemy, not a relative
+1	Frankenstein's_Monster_(Marvel_Comics)	Human_Torch_(android)	family	0	'Nazi clone' - an enemy, not a relative
+1	Adam_Warlock	Black_Widow_(Natasha_Romanova)	family	0	'Black Widow's clone' in a list of recruits
+1	Adam_Warlock	Doctor_Strange	family	0	same sentence - 'clone' again
+1	Hulkling	Captain_Marvel_(Khn'nr)	family	1	
+1	Human_Torch	Franklin_Richards_(character)	family	1	
+1	Ghost_Rider_(Danny_Ketch)	Ghost_Rider_(Johnny_Blaze)	family	1	
+1	Storm_(Marvel_Comics)	Misty_Knight	romance	0	'former husband Black Panther, Luke Cage and Misty Knight' - husband is Black Panther
+1	Black_Widow_(Natasha_Romanova)	Red_Guardian	romance	1	
+1	Isaiah_Bradley	Storm_(Marvel_Comics)	romance	0	the wedding of Storm and Black Panther, attended by Isaiah Bradley
+1	Jean_Grey	Wolverine_(Ultimate_Marvel_character)	romance	1	
+1	Cyclops_(Marvel_Comics)	Jean_Grey	romance	1	
+1	Quicksilver_(Marvel_Comics)	Black_Bolt	romance	0	Black Bolt walked Crystal down the aisle at Quicksilver's wedding
+1	U.S._Agent	Mockingbird_(Marvel_Comics)	romance	0	'his lover Mockingbird' - his is Hawkeye
+1	She-Hulk	Hercules_(Marvel_Comics)	romance	1	
+1	Scarlet_Witch	Human_Torch_(android)	romance	0	Wanda married the Vision, not the Human Torch
+1	Ghost_Rider_(Johnny_Blaze)	Doctor_Strange	romance	0	'lost his wife Roxanne' - an acquaintance of Doctor Strange
+1	Black_Widow_(Natasha_Romanova)	Spider-Man	romance	1	
+1	She-Hulk	John_Jameson_(character)	romance	1	
+1	Cyclops_(Marvel_Comics)	Wolverine_(character)	team	1	
+1	White_Tiger_(comics)	White_Tiger_(Heroes_for_Hire)	team	0	alias bug: matched the team name 'Heroes for Hire'
+1	Toxyn	Scatterbrain_(Morituri)	team	1	
+1	Ghost_Rider_(Danny_Ketch)	Wolverine_(character)	team	1	
+1	Emma_Frost	Cloak_and_Dagger_(characters)	team	1	
+1	Anole_(character)	Rockslide_(character)	team	1	
+1	Gargoyle_(comics)	Patsy_Walker	team	0	sent to capture her - an enemy
+1	Hercules_(Marvel_Comics)	Black_Widow_(Natasha_Romanova)	team	1	
+1	Captain_Universe	Quasar_(character)	team	0	hosts of the Uni-Power, not a team
+1	Vance_Astrovik	Quicksilver_(Marvel_Comics)	team	1	
+1	Bug_(Marvel_Comics)	Star-Lord	team	1	
+1	Doctor_Spectrum	Quasar_(character)	team	0	'teammates encounter Quasar' - Quasar is not one of them
+1	Blazing_Skull	Black_Marvel	media	1	
+1	Man-Thing	Fin_Fang_Foom	media	1	
+1	Kismet_(Marvel_Comics)	Captain_Marvel_(Marvel_Comics)	media	0	taking over the Captain Marvel mantle is a story relation
+1	Two-Gun_Kid	Black_Rider_(character)	media	1	
+1	Stingray_(Marvel_Comics)	Hulk	media	1	
+1	Abomination_(character)	Deathlok	media	1	
+1	Storm_(Marvel_Comics)	Scarlet_Witch	media	1	
+1	Misty_Knight	Bill_Foster_(character)	media	1	
+2	Ronin_(Marvel_Comics)	Spider-Man	enemy	1	
+2	Venom_(character)	Mania_(character)	enemy	0	Mania is one of Venom's offspring
+2	Scarlet_Witch	Doctor_Strange	enemy	1	
+2	Spider-Woman	Spider-Man	enemy	0	no conflict - 'kills' is about Morlun
+2	Wild_Child_(character)	Wolverine_(character)	enemy	1	
+2	Frog-Man	Thor_Girl	enemy	1	
+2	Firebird_(Marvel_Comics)	Hulk	enemy	1	
+2	Star_Brand	Nightmask	enemy	0	the Avengers fought both - they are on the same side
+2	Shang-Chi	Ares_(Marvel_Comics)	enemy	1	
+2	Frankenstein's_Monster_(Marvel_Comics)	Spider-Man	enemy	1	
+2	Black_Bolt	Spider-Man	ally	1	
+2	Morbius	Deathlok	ally	1	
+2	Ikaris	Makkari_(character)	ally	1	
+2	Bucky_(Marvel_Comics)	U.S._Agent	ally	1	
+2	Bill_Foster_(character)	Spider-Man	ally	1	
+2	Quicksilver_(Marvel_Comics)	Mockingbird_(Marvel_Comics)	ally	1	
+2	Spitfire_(character)	Blue_Bullet	ally	0	'save the Torch from the Blue Bullet' - the villain
+2	Shuri_(character)	Black_Panther_(character)	ally	0	sister and successor, not an alliance
+2	Arabian_Knight_(character)	Hulk	ally	1	
+2	Scarlet_Scarab	Human_Torch_(android)	ally	0	'Allied Forces' - and Faoul was deceiving them
+2	Mayday_Parker	Spider-Man_Noir	family	1	
+2	Patsy_Walker	Kristoff_Vernard	family	0	'the son of Doctor Doom'
+2	Spider-Woman	Mayday_Parker	family	0	'Peter and MJ's daughter'
+2	White_Tiger_(comics)	Black_Panther_(character)	family	0	'Sal's son'
+2	Spider-Bitch_(Ashley_Barton)	Mayday_Parker	family	1	
+2	Franklin_Richards_(character)	Human_Torch	family	1	
+2	Spider-Bitch_(Ashley_Barton)	Spider-Man	family	1	
+2	Bill_Foster_(character)	Black_Panther_(character)	family	0	'Bill's nephew'
+2	Ruby_Summers	Emma_Frost	family	1	
+2	Blade_(character)	Morbius	family	0	'Midnight Sons' is a publishing imprint
+2	Blade_(character)	Ghost_Rider_(Johnny_Blaze)	family	0	'Midnight Sons' is a publishing imprint
+2	Black_Cat_(Marvel_Comics)	Scarlet_Spider	family	1	
+2	Hercules_(Marvel_Comics)	Noh-Varr	romance	1	
+2	Iron_Man_(Ultimate_Marvel_character)	Black_Widow_(Natasha_Romanova)	romance	1	
+2	Spider-Man	Spider-Woman_(Gwen_Stacy)	romance	1	
+2	Anya_Corazon	Spider-Woman_(Jessica_Drew)	romance	0	'I Love New York City' is a comic title
+2	Quicksilver_(Marvel_Comics)	Human_Torch	romance	0	Crystal's former boyfriend - rivals, not lovers
+2	John_Jameson_(character)	She-Hulk	romance	1	
+2	Phyla-Vell	Moondragon	romance	1	
+2	Spider-Man	Spider-Man_Noir	romance	0	'a new love interest for Peter Parker' - that is Mary Jane
+2	Wolverine_(character)	Jean_Grey	romance	1	
+2	Scaredycat	Scatterbrain_(Morituri)	romance	1	
+2	Human_Torch	Quicksilver_(Marvel_Comics)	romance	0	Crystal married Quicksilver after leaving the Torch
+2	Jean_Grey_(X-Men_film_series)	Cyclops_(Marvel_Comics)	romance	1	
+2	Radian_(Morituri)	Blackthorn_(character)	team	1	
+2	Adam_Warlock	Scarlet_Witch	team	0	a list of fused characters, not a team
+2	Spider-UK	Spider-Woman_(Gwen_Stacy)	team	1	
+2	Black_Cat_(Marvel_Comics)	Misty_Knight	team	1	
+2	Power_Man_(Victor_Alvarez)	Luke_Cage	team	0	his predecessor as Power Man, not a teammate
+2	Spider-UK	Spider-Man	team	1	
+2	Guardian_(Marvel_Comics)	Wolverine_(Ultimate_Marvel_character)	team	1	
+2	Noh-Varr	Captain_Marvel_(Khn'nr)	team	0	'founded this church' - not a team
+2	Scarlet_Witch	Spider-Woman_(Jessica_Drew)	team	1	
+2	Vance_Astrovik	Hank_Pym	team	1	
+2	Frog-Man	Gargoyle_(comics)	team	0	his employer, a former Defender
+2	Iron_Fist_(character)	Union_Jack_(Marvel_Comics)	team	1	

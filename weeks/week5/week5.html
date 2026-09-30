@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 5 · Friends, foes and family — 303 Superheroes</title>
+<meta name="description" content="We labelled every Marvel link from the sentence behind it. Enemies don't sit in different communities from allies. Plot holds communities together; publishing history crosses them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span><a href="../../">← 303 Superheroes</a></span>
+    <span>Week 5 · From language to numbers</span>
+  </div>
+
+  <h1>Your nemesis<br>lives next<br>door</h1>
+  <p class="standfirst">We gave every link in the Marvel network a type — enemy, ally, family, team — from the sentence behind it, and asked whether enemies sit in different communities from allies. They don't. What separates communities isn't who fights whom. It's whether the link is a story at all.</p>
+  <p class="byline">02805 Social Graphs and Interactions · DTU · week 5 · Elena, Karen, Mush</p>
+
+  <section>
+    <p class="kicker">What we asked</p>
+    <h2>Four weeks of links, and we never knew what any of them meant</h2>
+    <p>Since week 1 an edge from A to B has meant exactly one thing: A's Wikipedia article links to B's. Spider-Man's 106 incoming links, Rockman's two, the clustering surplus we chased through week 2 — all of it treated a link to an archenemy and a link to a wife as the same object.</p>
+    <p>This week the network gets its text: the full article behind each of the 303 characters. So for every link A → B we can go and find the sentence on A's page where B is mentioned, and read off what kind of relationship it is. That turns 1,784 anonymous arrows into a typed network — friends, foes, family, teammates.</p>
+    <p>And a typed network lets us ask a question we couldn't before. Louvain splits the Marvel network into seven to nine communities. If those communities are <em>factions</em> — heroes in one, villains in another — then enemy links should be the ones crossing between them, and ally links should stay inside. So:</p>
+    <div class="callout">
+      <p><strong>Do enemy links cross community boundaries more often than ally links?</strong></p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">What we did</p>
+    <h2>From 1,784 arrows to 1,784 sentences</h2>
+
+    <h3>1 · Sentences</h3>
+    <p>The 303 articles come to 4.4 million characters. We split them into <strong>38,108 sentences</strong> with a deliberately simple rule-based splitter: break after a full stop, question mark or exclamation mark when a new sentence starts, but protect abbreviations like <em>No. 1</em> and initials like <em>U.S.A.</em> first. A trained model would split slightly better. This one runs identically on every machine, and when it's wrong you can see why in ten lines of code.</p>
+
+    <h3>2 · Finding B on A's page</h3>
+    <p>Plain text has lost the link markup, so a link can only be found by name. Each character gets a few aliases: the title without its disambiguator (<em>Hercules (Marvel Comics)</em> → <em>Hercules</em>), an alter ego from the description (<em>Emil Blonsky</em> for the Abomination), a nickname (<em>Johnny Storm</em> for the Human Torch). Matching is whole-word and case-sensitive, so <em>Hulk</em> doesn't fire inside <em>She-Hulk</em>.</p>
+    <p>One rule mattered more than the rest. She-Hulk's page says <em>She-Hulk</em> 276 times, and one of her links goes to <em>She-Hulk (Lyra)</em>, whose alias is also <em>She-Hulk</em>. Without a fix, every sentence about Jennifer Walters counts as a sentence about Lyra. So any alias the target shares with the source page's own subject is dropped for that link.</p>
+    <p>With that, <strong>1,569 of 1,784 links (88%)</strong> resolve to at least one sentence. The other 215 are name variants we don't catch — <em>Rom</em> for Rom the Space Knight, <em>Brother Voodoo</em> for Jericho Drumm.</p>
+
+    <h3>3 · Reading the relationship off the words around the name</h3>
+    <p>Six word lists: <strong>enemy</strong> (<em>fought, defeated, nemesis</em>…), <strong>ally</strong> (<em>alongside, helped, rescued, teamed up</em>…), <strong>team</strong> (<em>member, joined, recruited</em>…), <strong>family</strong>, <strong>romance</strong>, and a sixth for <strong>publication context</strong> (<em>appears in, debuted, voiced by, issue</em>…), because plenty of links are nothing but “Star-Lord appears in <em>Ultimate Spider-Man</em>”. A keyword only counts within ten words of the name, and two rules decide whose keyword it is:</p>
+
+<pre>"... fought alongside Wolverine"       nearest keyword wins      → ally
+"... her former husband Black Panther,  keyword belongs to the
+     Luke Cage and Misty Knight"        nearest character         → Black Panther, not Misty</pre>
+
+    <p>Both rules exist because the first version got those exact sentences wrong. More on that below.</p>
+
+    <h3>4 · The test</h3>
+    <p>Louvain on the 277-character giant component, one label per pair of characters (both directions pooled, so a mutual link isn't counted twice), and for each label the share of links that cross a community boundary. Then a permutation test: shuffle the enemy and ally labels between those links and see how often chance produces a gap as big as the real one. We shuffle only <em>within</em> bands of hub size, so a difference can't come from enemies simply being attached to bigger hubs.</p>
+    <p>Week 4 taught us that one Louvain run is one sample — two runs here agree at an NMI of 0.53 to 0.89 — so <strong>everything is repeated over ten seeds</strong>.</p>
+
+    <div class="chips">
+      <span class="chip">303 articles · 38,108 sentences</span>
+      <span class="chip">rule-based splitter</span>
+      <span class="chip">10-word window</span>
+      <span class="chip">124 labels read by hand</span>
+      <span class="chip">10 Louvain seeds</span>
+      <span class="chip">hub-stratified permutation</span>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">What we checked in the text</p>
+    <h2>A classifier always answers. We read 124 answers.</h2>
+    <p>A keyword labeller never says “I don't know”. It will label every sentence you hand it, and the labels will look plausible in a table. The only way to find out whether they're right is to read them. So we drew a random sample of labelled links and graded each against one written rule: <strong>a label is correct only if the sentence puts the target in that relationship with the page's own subject.</strong></p>
+
+    <figure>
+      <img src="figures/validation.svg" alt="Dot plot of the share of labels judged correct when read, with 95 percent intervals. Enemy and ally 82 percent, team 67 percent, romance 58 percent, family 50 percent, publication context 88 percent.">
+      <figcaption>Share of each label that was right when read, with 95% Wilson intervals. Only enemy and ally clear 80%, and on 22 links each the intervals still run from 61% to 93%. Filled markers are the two labels the test relies on.</figcaption>
+    </figure>
+
+    <p>We did it in two rounds. The first 68 links exposed three bugs, and every one was invisible in the output:</p>
+    <ul>
+      <li><strong>“Fought alongside Wolverine” made Wolverine an enemy.</strong> The first version broke ties between keywords with a fixed priority, and enemy outranked ally. Letting the nearest keyword decide cut the enemy count by 37.</li>
+      <li><strong>“Clone” is not family.</strong> Four of the six family errors in round one were <em>the Nazi clone Frankenstein's Monster</em> and <em>Black Widow's clone</em>. In Marvel, a clone is usually a villain.</li>
+      <li><strong>White Tiger (Heroes for Hire) matched every mention of the team <em>Heroes for Hire</em>.</strong> The disambiguator in brackets was being used as an alias. Now a bracket only counts if it reads like a person's name.</li>
+    </ul>
+    <p>Then we graded 56 <em>fresh</em> links under the fixed version, since re-grading the ones we'd just fixed would flatter the fix. Enemy and ally pool at <strong>18 of 22</strong> each. Family didn't move: 6 of 12 in both rounds. Its errors are structural — <em>Sal's</em> son, <em>Bill's</em> nephew, <em>the son of Doctor Doom</em>, and once the publishing imprint <em>Midnight Sons</em>. A keyword window can't tell whose son it is.</p>
+    <p>That decided the design: <strong>the test uses only enemy and ally.</strong> The other labels are reported below with a flag on them.</p>
+  </section>
+
+  <section>
+    <p class="kicker">The answer</p>
+    <h2>No. Enemies live in your community.</h2>
+
+    <figure class="wide">
+      <img src="figures/crossing.svg" alt="Dot plot of the share of links that cross a Louvain community boundary, by label, with one small marker per Louvain seed and a large marker for the mean. Enemy 44 percent and ally 41 percent sit close together, below the all-links line at 47 percent. Family 26 and romance 31 percent are lower still. Publication context, mentions with no keyword, and names not found all sit above the line at 54 to 55 percent.">
+      <figcaption>How often each kind of link crosses a community boundary. Small markers are the ten Louvain seeds; large markers their mean; the dashed line is all 1,421 links. Red circles are story relationships, blue diamonds are links that aren't.</figcaption>
+    </figure>
+
+    <p>Enemy links cross community lines <strong>44%</strong> of the time, ally links <strong>41%</strong>. Across the ten seeds the gap runs from 1 to 7 points and is never significant (p ≥ 0.14 on every seed, hub-stratified). The communities aren't factions.</p>
+    <p>And this is a real no, not a shrug. In the shuffled networks, 95% of gaps stay within 9 points, so a genuine difference of that size would have shown up. Label noise pulls any real gap toward zero — with one label in five wrong, roughly by a fifth — so what we can honestly say is that <strong>any difference between enemies and allies is small</strong>. We can't say there is none.</p>
+    <p>It makes sense once you look at who's in the communities. The largest one is Spider-Man's, and its next three members by degree are Venom, Black Cat and Black Widow: a nemesis, an ex and a sometime partner. A Louvain community in this network is a <em>cast</em>, and a cast includes its villains. Venom's article mentions Spider-Man in 156 separate sentences, because the two are the same story.</p>
+  </section>
+
+  <section>
+    <p class="kicker">What surprised us</p>
+    <h2>What crosses the boundaries is publishing, not plot</h2>
+    <p>The figure has a second pattern we didn't go looking for. <strong>Every</strong> story label crosses less than the average link. The links that don't describe a story — “appears in”, “debuted in the same comic”, a name with no relationship word near it, a link we couldn't find in the text at all — cross <em>more</em>.</p>
+    <p>Pooled, story links cross community boundaries <strong>40%</strong> of the time and everything else <strong>54%</strong>. The gap is 11 to 15 points depending on the seed, and <strong>p ≤ 0.001 on every one</strong> of the ten, under the same hub-stratified shuffle. Against the publication-context label alone — the one that reads correct 7 times in 8 — the gap is 11 to 18 points, p ≤ 0.021 on every seed.</p>
+    <p>So the picture is this. <strong>Communities are held together by plot</strong>: fights, alliances, marriages and team rosters sit inside a cast. <strong>The bridges between casts are publishing history</strong>: crossovers, anthology titles, guest appearances, characters who debuted in the same 1941 comic. Two characters in different corners of the Marvel universe are usually connected not because one did something to the other, but because an editor once put them in the same book.</p>
+    <p>That also changes how to read week 3. The brokers we found there — Hercules, Black Widow, U.S. Agent — sit between communities. This result suggests some of that brokerage is publishing history rather than plot. Checking which of their cross-community links are story links would test it, and that's a clean follow-up with the data we now have.</p>
+    <p>Family and romance cross least of all — 26% and 31%. Kinship and marriage stay in the family. But those two labels are right barely half the time when read, so this is a lead, not a finding.</p>
+  </section>
+
+  <section>
+    <p class="kicker">The sentences</p>
+    <h2>What each label looks like up close</h2>
+    <p>Every number above comes from sentences like these. For each label: two it gets right, and one it gets wrong, all drawn from the links we graded.</p>
+
+    <h3 class="roster-head">Six labels, read up close</h3>
+    <p class="roster-legend"><strong>trusted</strong> — right at least four times in five when we read them · <strong>shaky</strong> — two in three · <strong>unreliable</strong> — close to a coin flip. Click a label for the sentences behind it.</p>
+
+    <div class="roster">
+      <button class="hero" type="button" data-hero="enemy" data-name="Enemy" style="--c1:#6E1414;--c2:#D22B2B" aria-label="Enemy label, trusted — open details">
+        <span class="hero-name">Enemy</span>
+        <span class="hero-portrait"><span class="ph">EN</span></span>
+        <span class="tag t-live">trusted</span>
+      </button>
+      <button class="hero" type="button" data-hero="ally" data-name="Ally" style="--c1:#1C3A63;--c2:#3F6FB0" aria-label="Ally label, trusted — open details">
+        <span class="hero-name">Ally</span>
+        <span class="hero-portrait"><span class="ph">AL</span></span>
+        <span class="tag t-live">trusted</span>
+      </button>
+      <button class="hero" type="button" data-hero="team" data-name="Team" style="--c1:#1B2547;--c2:#6B7FB0" aria-label="Team label, shaky — open details">
+        <span class="hero-name">Team</span>
+        <span class="hero-portrait"><span class="ph">TM</span></span>
+        <span class="tag t-dead">shaky</span>
+      </button>
+      <button class="hero" type="button" data-hero="family" data-name="Family" style="--c1:#1F3D2B;--c2:#6E9B6A" aria-label="Family label, unreliable — open details">
+        <span class="hero-name">Family</span>
+        <span class="hero-portrait"><span class="ph">FA</span></span>
+        <span class="tag t-free">unreliable</span>
+      </button>
+      <button class="hero" type="button" data-hero="romance" data-name="Romance" style="--c1:#3D1F4A;--c2:#9B6BB5" aria-label="Romance label, unreliable — open details">
+        <span class="hero-name">Romance</span>
+        <span class="hero-portrait"><span class="ph">RO</span></span>
+        <span class="tag t-free">unreliable</span>
+      </button>
+      <button class="hero" type="button" data-hero="media" data-name="Publication context" style="--c1:#2B3A55;--c2:#8A9CC0" aria-label="Publication context label, trusted — open details">
+        <span class="hero-name">Publication context</span>
+        <span class="hero-portrait"><span class="ph">PC</span></span>
+        <span class="tag t-live">trusted</span>
+      </button>
+    </div>
+
+    <template id="hero-enemy">
+      <div class="hm-pic"><span class="ph">EN</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">trusted · 82% correct when read</p>
+        <h3>Enemy</h3>
+        <p class="hm-real">321 links carry this label · 289 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“Typeface uses his giant letters as weapons and manages to defeat Spider-Man.”<br><span>Typeface → Spider-Man</span></p>
+        <p class="hm-quote">“This Arabian Knight participates in international attempt to invade Wakanda, but is defeated by Black Panther and Storm.”<br><span>Arabian Knight → Black Panther</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“Both he and Mickey are attacked by the Air Force while training with Nova.”<br><span>Turbo → Nova</span></p>
+        <p>The attackers are the Air Force. Nova is who they were training with — an ally.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>321</dd></div>
+          <div><dt>Pairs</dt><dd>289</dd></div>
+          <div><dt>Cross communities</dt><dd>44%</dd></div>
+          <div><dt>Read correct</dt><dd>18/22</dd></div>
+        </dl>
+      </div>
+    </template>
+    <template id="hero-ally">
+      <div class="hm-pic"><span class="ph">AL</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">trusted · 82% correct when read</p>
+        <h3>Ally</h3>
+        <p class="hm-real">219 links carry this label · 193 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“Alongside Doctor Strange and the Black Crow, Red Wolf stopped the Cheyenne pantheon from taking vengeance for the Cheyenne people.”<br><span>Red Wolf → Doctor Strange</span></p>
+        <p class="hm-quote">“With the aid of Spider-Man and Captain America, the real Skrulls are exposed and captured.”<br><span>Gladiator → Spider-Man</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“She used these new powers to save the Torch from the Blue Bullet.”<br><span>Spitfire → Blue Bullet</span></p>
+        <p>“Save” sits next to the villain&#x27;s name. The Torch is who she saved.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>219</dd></div>
+          <div><dt>Pairs</dt><dd>193</dd></div>
+          <div><dt>Cross communities</dt><dd>41%</dd></div>
+          <div><dt>Read correct</dt><dd>18/22</dd></div>
+        </dl>
+      </div>
+    </template>
+    <template id="hero-team">
+      <div class="hm-pic"><span class="ph">TM</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">shaky · 67% correct when read</p>
+        <h3>Team</h3>
+        <p class="hm-real">106 links carry this label · 87 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“Ruth as Toxyn, along with Scaredycat and Scatterbrain, joins the second-generation Morituri team.”<br><span>Toxyn → Scatterbrain</span></p>
+        <p class="hm-quote">“He was then recruited into a hastily assembled covert team led by Star-Lord.”<br><span>Bug → Star-Lord</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“Following the incident, Eugene becomes a busboy at Isaac&#x27;s Oysters, a Greenwich restaurant run by Isaac Christians / Gargoyle, a former member of the Defenders.”<br><span>Frog-Man → Gargoyle</span></p>
+        <p>Gargoyle is his employer. “Member” refers to a team Frog-Man was never in.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>106</dd></div>
+          <div><dt>Pairs</dt><dd>87</dd></div>
+          <div><dt>Cross communities</dt><dd>42%</dd></div>
+          <div><dt>Read correct</dt><dd>16/24</dd></div>
+        </dl>
+      </div>
+    </template>
+    <template id="hero-family">
+      <div class="hm-pic"><span class="ph">FA</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">unreliable · 50% correct when read</p>
+        <h3>Family</h3>
+        <p class="hm-real">106 links carry this label · 80 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“Ruby is the daughter of Scott Summers and Emma Frost from the dystopian alternate future Earth-1191.”<br><span>Ruby Summers → Emma Frost</span></p>
+        <p class="hm-quote">“Ketch and Johnny Blaze later learn that they are long-lost brothers and that their family has a mystical curse related to the Spirits of Vengeance.”<br><span>Danny Ketch → Johnny Blaze</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“Bill&#x27;s nephew, M.I.T. student Tom Foster, informs the Black Panther of intending to follow in his uncle&#x27;s footsteps by cracking the Pym Particle formula and being a hero.”<br><span>Bill Foster → Black Panther</span></p>
+        <p>The nephew is Bill&#x27;s. A keyword window cannot see a possessive — the same mistake as “Sal&#x27;s son”, “the son of Doctor Doom”, and the publishing imprint “Midnight Sons”.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>106</dd></div>
+          <div><dt>Pairs</dt><dd>80</dd></div>
+          <div><dt>Cross communities</dt><dd>26%</dd></div>
+          <div><dt>Read correct</dt><dd>12/24</dd></div>
+        </dl>
+      </div>
+    </template>
+    <template id="hero-romance">
+      <div class="hm-pic"><span class="ph">RO</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">unreliable · 58% correct when read</p>
+        <h3>Romance</h3>
+        <p class="hm-real">58 links carry this label · 40 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“Perhaps her longest crush is on Hercules, about whom she has repeatedly dreamt.”<br><span>She-Hulk → Hercules</span></p>
+        <p class="hm-quote">“At some point, she finally kissed Scatterbrain and the two began forming a romance.”<br><span>Scaredycat → Scatterbrain</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“Hawkeye vents that he has been through a lot with the death of his lover Mockingbird, and that he mistrusts Tony Stark.”<br><span>U.S. Agent → Mockingbird</span></p>
+        <p>“His” is Hawkeye. The page&#x27;s subject, U.S. Agent, is not in this relationship at all.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>58</dd></div>
+          <div><dt>Pairs</dt><dd>40</dd></div>
+          <div><dt>Cross communities</dt><dd>31%</dd></div>
+          <div><dt>Read correct</dt><dd>14/24</dd></div>
+        </dl>
+      </div>
+    </template>
+    <template id="hero-media">
+      <div class="hm-pic"><span class="ph">PC</span></div>
+      <div class="hm-text">
+        <p class="hm-verdict">trusted · 88% correct when read</p>
+        <h3>Publication context</h3>
+        <p class="hm-real">159 links carry this label · 127 pairs in the giant component</p>
+        <h4>What it catches</h4>
+        <p class="hm-quote">“After brief appearances in titles the Hulk and The Defenders, Newell becomes a regular guest-star in the title Marvel Two-In-One.”<br><span>Stingray → Hulk</span></p>
+        <p class="hm-quote">“The character then moved to the Atlas Comics omnibus Wild Western, sharing the title with other Western characters like Kid Colt and the Black Rider.”<br><span>Two-Gun Kid → Black Rider</span></p>
+        <h4>Where it goes wrong</h4>
+        <p class="hm-quote">“In the limited series Fantastic Four: The End, Ayesha has taken over the Captain Marvel mantle in the near future.”<br><span>Kismet → Captain Marvel</span></p>
+        <p>Taking over a mantle is a story relationship. “Limited series” was the nearest keyword.</p>
+        <dl class="hm-stats">
+          <div><dt>Links</dt><dd>159</dd></div>
+          <div><dt>Pairs</dt><dd>127</dd></div>
+          <div><dt>Cross communities</dt><dd>55%</dd></div>
+          <div><dt>Read correct</dt><dd>7/8</dd></div>
+        </dl>
+      </div>
+    </template>
+  </section>
+
+  <section>
+    <p class="kicker">The limitation</p>
+    <h2>A keyword isn't a meaning</h2>
+    <p>The one we'd lead with: <strong>every label here is a word near a name, not an understanding of the sentence</strong>. It gets enemy and ally right about four times in five, and fails in predictable ways — it can't see possessives, sarcasm, flashbacks, alternate universes, or who is doing what to whom. Our main result survives that, because random label errors blur a real difference rather than invent one. But it's why the family and romance numbers are leads and not findings, and it's what next week's tools are for.</p>
+    <p>Three smaller ones, stated so nobody has to find them:</p>
+    <ul>
+      <li><strong>Twelve percent of links are missing.</strong> 215 links never resolve to a sentence, mostly because of name variants. They sit in the “name not found” row and behave like the other non-story links.</li>
+      <li><strong>The communities come from the same links we're labelling.</strong> That doesn't bias the enemy-versus-ally comparison, since the labels play no part in the clustering, but a different community method could draw different lines.</li>
+      <li><strong>One reader.</strong> The 124 grades were made by our coding agent reading each sentence against the rule, and every one of the 39 errors is written down with its reason in <code>data/derived/week5_validation.tsv</code>. That makes each call checkable, but it's still one reader. A second, independent grader would tell us how much the rule itself is open to interpretation.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="kicker">Conclusion</p>
+    <h2>The typed network, and what it's for</h2>
+    <p>We asked whether enemies cross community lines more than allies. They don't. The gap is 1 to 7 points and never significant across ten Louvain runs, with enough power to have caught a gap of about nine. Marvel's link communities aren't factions. They're casts, and a cast includes its villains.</p>
+    <p>What does separate communities is whether a link is a story at all. Story links stay inside communities; links from publication context — crossovers, guest spots, shared debuts — are the bridges. That result is 11 to 15 points and p ≤ 0.001 on every seed, and it's the one we'd defend.</p>
+    <p>The part we'd most want another group to take from this is the reading. The classifier would have produced a confident-looking typed network on the first try, with enemies inflated by 37 links and families full of Nazi clones. Every fix on this page came from reading its output, not from looking at its numbers. The labelled network is in the repo as <code>data/derived/week5_edge_labels.tsv</code> — 1,784 links, each with its label and the sentence behind it. Use it with the precision chart in hand.</p>
+  </section>
+
+  <footer>
+    <p>Code: <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week5_relationships.ipynb">the week 5 notebook</a>, which produces every number and figure here, and the shared helpers in <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/src/marvel.py">src/marvel.py</a>. The hand-graded sample, with a reason for every error, is <a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/data/derived/week5_validation.tsv">week5_validation.tsv</a>.</p>
+    <p>Data: the 02805 week-5 release, 303 plain-text Wikipedia articles frozen 26 August 2026, joined to the week-1 link network. Article text from Wikipedia, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>; quoted sentences are excerpts under the same licence.</p>
+    <p><a href="../week4/week4.html">← Week 4: communities</a> &nbsp;·&nbsp; <a href="../../">All weeks</a></p>
+  </footer>
+
+</div>
+<script src="../../assets/js/roster.js"></script>
+</body>
+</html>
