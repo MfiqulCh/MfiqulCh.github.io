@@ -2,9 +2,16 @@
 
    Two tabs (In / Out). A navy drawer slides down over the top of the screen
    holding the five characters for the current tab; the arrow at its bottom
-   slides it back up. Picking a character flies their badge into the middle
-   of the stage and draws every link around them — arriving on the In tab,
-   leaving on the Out tab — with the character's file alongside.
+   slides it back up.
+
+   Picking a character does two things at once:
+     - the screen draws that character in the middle with every link around
+       them, arriving on the In tab and leaving on the Out tab;
+     - their file pops open on top of it, growing out of the icon that was
+       clicked. Closing the file shrinks it into the middle of the drawing,
+       and the links flow in.
+   The character in the middle (or the button in the guide) opens the file
+   again.
 
    Every number and every quoted sentence comes from window.HUBS, which the
    week 1 notebook writes to weeks/week1/data/hubs.js. The paragraphs on why
@@ -26,28 +33,39 @@
   var BLUE = "#3F6FB0", RED = "#D22B2B";
   var C = 300, HUB_R = 46, R0 = 98, RMAX = 268;
   var GOLDEN = Math.PI * (3 - Math.sqrt(5));
-  var LABELLED = 5;
+  var LABELLED = 5, POP_MS = 560;
 
   var tabs = [].slice.call(root.querySelectorAll(".hs-tab"));
-  var panel = root.querySelector(".hs-screen");
+  var screen = root.querySelector(".hs-screen");
   var drawer = root.querySelector(".hs-drawer");
   var toggle = root.querySelector(".hs-toggle");
   var picks = root.querySelector(".hs-picks");
   var drawerTitle = root.querySelector(".hs-drawer-title");
+  var stage = root.querySelector(".hs-stage");
   var net = root.querySelector(".hs-net");
   var svg = net.querySelector("svg");
   var tip = net.querySelector(".hs-tip");
   var empty = net.querySelector(".hs-empty");
-  var info = root.querySelector(".hs-info");
+  var guide = root.querySelector(".hs-info");
   var nojs = root.querySelector(".hs-nojs");
   if (nojs) nojs.hidden = true;
-  info.removeAttribute("aria-live");
+  guide.removeAttribute("aria-live");
+
   var say = document.createElement("p");                 // short announcements for screen readers
   say.className = "sr";
   say.setAttribute("aria-live", "polite");
   root.appendChild(say);
 
-  var mode = "in", current = null, nodes = [], active = -1, pinned = false, timers = [];
+  var pop = document.createElement("div");               // the character's file
+  pop.className = "hs-pop";
+  pop.hidden = true;
+  pop.setAttribute("role", "dialog");
+  pop.setAttribute("aria-modal", "true");
+  pop.setAttribute("aria-labelledby", "hs-pop-name");
+  screen.appendChild(pop);
+
+  var mode = "in", current = null, nodes = [], active = -1, pinned = false;
+  var popOpen = false, popBusy = false, popTrigger = null, revealed = false, after = null;
 
   /* ---------- small helpers ---------- */
   function esc(s) {
@@ -76,7 +94,9 @@
       why: t ? t.content : null
     };
   }
-  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function setInert(on) {
+    [drawer, stage].forEach(function (x) { if ("inert" in x) x.inert = on; });
+  }
 
   /* ---------- drawer ---------- */
   function measureDrawer() {
@@ -99,12 +119,13 @@
   /* ---------- tabs ---------- */
   function setMode(m) {
     if (m === mode) return;
+    if (popOpen) closePop(true);
     mode = m;
     tabs.forEach(function (t) {
       var on = t.getAttribute("data-mode") === m;
       t.setAttribute("aria-selected", String(on));
       t.tabIndex = on ? 0 : -1;
-      if (on) panel.setAttribute("aria-labelledby", t.id);
+      if (on) screen.setAttribute("aria-labelledby", t.id);
     });
     buildPicks();
     clear();
@@ -133,7 +154,7 @@
       b.setAttribute("data-id", h.id);
       b.setAttribute("aria-pressed", "false");
       b.setAttribute("aria-label", h.name + ", number " + (i + 1) + ", " + h[mode] +
-        (mode === "in" ? " links received" : " links made"));
+        (mode === "in" ? " links received" : " links made") + ". Opens their file.");
       b.style.setProperty("--c1", m.c1);
       b.style.setProperty("--c2", m.c2);
       b.innerHTML = '<span class="hs-badge"><span class="hs-rank">' + (i + 1) + "</span>" + esc(m.ini) +
@@ -144,97 +165,235 @@
     });
   }
 
-  /* ---------- empty state / guide ---------- */
+  /* ---------- the guide beside the drawing ---------- */
+  function legendHTML(h) {
+    var hub = h ? esc(h.name) : "the character in the middle";
+    var near = mode === "in"
+      ? "nearer the middle: their article names " + hub + " more often"
+      : "nearer the middle: " + (h ? hub + "’s" : "that character’s") + " article names them more often";
+    return '<ul class="hs-legend">' +
+      '<li><span class="hs-key red"></span>links both ways</li>' +
+      '<li><span class="hs-key blue"></span>one way only</li>' +
+      '<li><span class="hs-key size"></span>bigger dot: more links in of its own</li>' +
+      '<li><span class="hs-key ring"></span>' + near + "</li></ul>";
+  }
+
   function clear() {
-    clearTimers();
     current = null;
     nodes = [];
     active = -1;
+    revealed = false;
     hideTip();
     svg.innerHTML = "";
     svg.removeAttribute("tabindex");
     svg.setAttribute("aria-label", "Pick a character to draw their links");
-    net.classList.remove("is-focus");
+    net.classList.remove("is-focus", "is-entering");
     var total = DATA[mode].reduce(function (a, h) { return a + h[mode]; }, 0);
     var share = (100 * total / DATA.links_total).toFixed(1) + "%";
     empty.innerHTML = "<strong>" + share + "</strong><span>of all " + num(DATA.links_total) +
       (mode === "in" ? " links point at one of these five." : " links are written by these five.") +
       "</span><em>Pick one to see who " + (mode === "in" ? "links to them." : "they link to.") + "</em>";
     empty.hidden = false;
-    info.innerHTML =
+    guide.innerHTML =
       '<p class="hs-kicker">How to read the screen</p>' +
       "<p>" + (mode === "in"
-        ? "Pick one of the five. They move to the middle, and every character whose article links to them appears around them, with the arrow pointing in."
-        : "Pick one of the five. They move to the middle, and every character their article links to appears around them, with the arrow pointing out.") +
+        ? "Pick one of the five. Their file opens, and behind it the screen draws every character whose article links to them, with the arrow pointing in."
+        : "Pick one of the five. Their file opens, and behind it the screen draws every character their article links to, with the arrow pointing out.") +
       "</p>" + legendHTML(null) +
       '<p class="hs-hint">The arrow at the bottom of the drawer slides it up out of the way.</p>';
   }
 
-  function legendHTML(h) {
-    var hub = h ? h.name : "the character in the middle";
-    var near = mode === "in"
-      ? "nearer the middle: their article names " + esc(hub) + " more often"
-      : "nearer the middle: " + esc(hub) + "’s article names them more often";
-    return '<ul class="hs-legend">' +
-      '<li><span class="hs-key red"></span>links both ways' + (h ? " <b>" + h.both + "</b>" : "") + "</li>" +
-      '<li><span class="hs-key blue"></span>one way only' + (h ? " <b>" + (h.links.length - h.both) + "</b>" : "") + "</li>" +
-      '<li><span class="hs-key size"></span>bigger dot: more links in of its own</li>' +
-      '<li><span class="hs-key ring"></span>' + near + "</li></ul>";
+  function fillGuide(h) {
+    guide.innerHTML =
+      '<p class="hs-kicker">How to read the screen</p>' +
+      "<p>" + esc(h.name) + (mode === "in"
+        ? " sits in the middle. Around the outside is every character whose article links to " + esc(h.name) + ", each arrow pointing in."
+        : " sits in the middle. Around the outside is every character " + esc(h.name) + "’s article links to, each arrow pointing out.") +
+      "</p>" + legendHTML(h) +
+      '<p class="hs-hint">Hover or tap a dot for the sentence behind its link. With a keyboard, focus the drawing and use the arrow keys.</p>' +
+      '<button type="button" class="hs-open">Open ' + esc(h.name) + "’s file</button>";
+    guide.querySelector(".hs-open").addEventListener("click", function (e) {
+      openPop(current, e.currentTarget, e.currentTarget);
+    });
   }
 
   /* ---------- picking a character ---------- */
   function select(h, btn) {
+    if (popOpen || popBusy) return;
     [].forEach.call(picks.children, function (b) {
       b.setAttribute("aria-pressed", String(b === btn));
     });
     current = h;
+    revealed = false;
     empty.hidden = true;
-    draw(h, btn);
-    fillInfo(h);
-    say.textContent = h.name + ": " + h.in + " links in, " + h.out + " out, " + h.both + " both ways.";
+    draw(h);
+    fillGuide(h);
+    openPop(h, btn.querySelector(".hs-badge"), btn);
   }
 
-  function fillInfo(h) {
+  /* ---------- the file ---------- */
+  function fillPop(h) {
     var m = meta(h.id), rank = DATA[mode].indexOf(h) + 1;
-    info.style.setProperty("--c2", m.c2);
+    pop.style.setProperty("--c1", m.c1);
+    pop.style.setProperty("--c2", m.c2);
     var stat = function (label, value, main, small) {
       return '<div class="' + (main ? "is-main" : "") + '"><dt>' + label + "</dt><dd>" + value +
         (small ? "<small>" + small + "</small>" : "") + "</dd></div>";
     };
     var share = (100 * h[mode] / DATA.links_total).toFixed(1) + "% of all " + num(DATA.links_total) +
       " links " + (mode === "in" ? "end here." : "start here.");
-    var list = h.links.map(function (l, i) {
-      return '<li><button type="button" data-i="' + i + '">' + esc(l.name) + "</button>" +
-        ' <span class="n">' + (l.same ? "same name" : l.n) + (l.both ? " ↔" : "") + "</span></li>";
-    }).join("");
-    info.innerHTML =
-      '<p class="hs-kicker">No. ' + rank + (mode === "in" ? " · most linked to" : " · links out most") + "</p>" +
-      '<h3 class="hs-name">' + esc(h.name) + "</h3>" +
-      '<dl class="hs-stats">' +
-        stat("Links in", h.in, mode === "in") +
-        stat("Links out", h.out, mode === "out") +
-        stat("Both ways", h.both) +
-        stat("Article", num(h.length), false, "sentences · " + ordinal(h.length_rank) + " longest") +
-      "</dl>" +
-      '<p class="hs-share">' + share + "</p>" +
-      "<h4>" + esc(m.title) + '</h4><div class="hs-why"></div>' +
-      legendHTML(h) +
-      '<p class="hs-hint">Hover or tap a dot for the sentence behind its link. With a keyboard, focus the drawing and use the arrow keys.</p>' +
-      '<details class="hs-all"><summary>All ' + h.links.length + ", most talked-about first</summary><ol>" + list + "</ol></details>";
-    if (m.why) info.querySelector(".hs-why").appendChild(m.why.cloneNode(true));
-    info.scrollTop = 0;
-    info.querySelector(".hs-all ol").addEventListener("click", function (e) {
+    var item = function (l, i) {
+      return '<li><button type="button" data-i="' + i + '">' + esc(l.name) + '</button> <span class="n">' +
+        (l.same ? "same name" : l.n + (l.n === 1 ? " sentence" : " sentences")) +
+        (l.both ? ' · <span class="both">both ways</span>' : "") + "</span></li>";
+    };
+    var top = h.links.slice(0, 5).map(item).join("");
+    var all = h.links.map(item).join("");
+    var everyone = mode === "in"
+      ? "Everyone who links to " + esc(h.name) + " (" + h.links.length + ")"
+      : "Everyone " + esc(h.name) + " links to (" + h.links.length + ")";
+    var topTitle = mode === "in" ? "Their articles talk about " + esc(h.name) + " most" : esc(h.name) + "’s article talks about them most";
+    pop.innerHTML =
+      '<button type="button" class="hs-pop-close" aria-label="Close the file">×</button>' +
+      '<div class="hs-pop-inner">' +
+        '<div class="hs-pop-side">' +
+          '<div class="hs-pop-badge" aria-hidden="true">' + esc(m.ini) + "</div>" +
+          '<p class="hs-pop-kicker">No. ' + rank + (mode === "in" ? " · most linked to" : " · links out most") + "</p>" +
+          '<h3 id="hs-pop-name">' + esc(h.name) + "</h3>" +
+          '<dl class="hs-pop-stats">' +
+            stat("Links in", h.in, mode === "in") +
+            stat("Links out", h.out, mode === "out") +
+            stat("Both ways", h.both) +
+            stat("Article", num(h.length), false, "sentences · " + ordinal(h.length_rank) + " longest") +
+          "</dl>" +
+          '<p class="hs-pop-share">' + share + "</p>" +
+        "</div>" +
+        '<div class="hs-pop-main">' +
+          "<h4>" + esc(m.title) + '</h4><div class="hs-pop-why"></div>' +
+          "<h4>" + topTitle + '</h4><ol class="hs-pop-list">' + top + "</ol>" +
+          '<details class="hs-pop-all"><summary>' + everyone + '</summary><ol class="hs-pop-list">' + all + "</ol></details>" +
+          '<button type="button" class="hs-pop-go">See the links →</button>' +
+        "</div>" +
+      "</div>";
+    if (m.why) pop.querySelector(".hs-pop-why").appendChild(m.why.cloneNode(true));
+    pop.querySelector(".hs-pop-close").addEventListener("click", function () { closePop(); });
+    pop.querySelector(".hs-pop-go").addEventListener("click", function () { closePop(); });
+    pop.querySelector(".hs-pop-main").addEventListener("click", function (e) {
       var b = e.target.closest("button[data-i]");
       if (!b) return;
-      activate(Number(b.getAttribute("data-i")), true);
-      var r = net.getBoundingClientRect();
-      if (r.top < 0 || r.bottom > window.innerHeight) net.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+      var i = Number(b.getAttribute("data-i"));
+      popTrigger = svg;                                    // keep going with the arrow keys from there
+      closePop(false, function () { activate(i, true); });
     });
   }
 
+  function circleAt(rect, ref, grow) {
+    var cx = rect.left + rect.width / 2 - ref.left, cy = rect.top + rect.height / 2 - ref.top;
+    var r = grow
+      ? Math.hypot(Math.max(cx, ref.width - cx), Math.max(cy, ref.height - cy)) + 8
+      : Math.max(rect.width, rect.height) / 2;
+    return "circle(" + r.toFixed(1) + "px at " + cx.toFixed(1) + "px " + cy.toFixed(1) + "px)";
+  }
+
+  function hubRect() {
+    var ctm = svg.getScreenCTM();
+    var hub = svg.querySelector(".hs-hubnode circle");
+    return hub && ctm ? hub.getBoundingClientRect() : null;
+  }
+
+  function openPop(h, fromEl, trigger) {
+    if (popOpen || popBusy || !h) return;
+    activate(-1);
+    fillPop(h);
+    popTrigger = trigger || null;
+    popOpen = true;
+    pop.hidden = false;
+    pop.classList.remove("is-closing");
+    var fixed = getComputedStyle(pop).position === "fixed";
+    if (fixed) document.body.classList.add("hm-lock");
+    setInert(true);
+    say.textContent = h.name + "’s file: " + h.in + " links in, " + h.out + " out, " + h.both + " both ways.";
+    document.addEventListener("keydown", popKeys);
+
+    if (reduce || !fromEl) {
+      pop.style.clipPath = "";
+      pop.classList.add("is-open");
+      focusLater(0);
+      return;
+    }
+    popBusy = true;
+    var ref = pop.getBoundingClientRect(), from = fromEl.getBoundingClientRect();
+    pop.style.transition = "none";
+    pop.style.clipPath = circleAt(from, ref, false);
+    pop.getBoundingClientRect();
+    pop.style.transition = "";
+    pop.classList.add("is-open");
+    pop.style.clipPath = circleAt(from, ref, true);
+    setTimeout(function () { popBusy = false; pop.style.clipPath = ""; }, POP_MS);
+    focusLater(POP_MS * 0.6);
+  }
+
+  function focusLater(ms) {
+    setTimeout(function () {
+      var x = pop.querySelector(".hs-pop-close");
+      if (x && popOpen) x.focus({ preventScroll: true });
+    }, ms);
+  }
+
+  // instant: skip the animation (used when switching tabs)
+  // then: run after the file has gone, e.g. to light up a link picked in the list
+  function closePop(instant, then) {
+    if (!popOpen || popBusy) return;
+    popOpen = false;
+    document.removeEventListener("keydown", popKeys);
+    after = then || null;
+    var done = function () {
+      pop.hidden = true;
+      pop.classList.remove("is-open", "is-closing");
+      pop.style.clipPath = "";
+      popBusy = false;
+      document.body.classList.remove("hm-lock");
+      setInert(false);
+      if (!instant) {
+        if (!revealed) reveal();
+        if (popTrigger && document.contains(popTrigger)) popTrigger.focus({ preventScroll: true });
+        if (after) setTimeout(after, revealed && !reduce ? 260 : 0);
+      }
+      after = null;
+    };
+    document.body.classList.remove("hm-lock");
+    if (!instant) {
+      var nr = net.getBoundingClientRect();
+      if (nr.top < 0 || nr.bottom > window.innerHeight) net.scrollIntoView({ block: "center" });
+    }
+    var target = instant || reduce ? null : hubRect();
+    if (!target) { done(); return; }
+    popBusy = true;
+    var ref = pop.getBoundingClientRect();
+    pop.style.transition = "none";
+    pop.style.clipPath = circleAt(target, ref, true);
+    pop.getBoundingClientRect();
+    pop.style.transition = "";
+    pop.classList.add("is-closing");
+    pop.style.clipPath = circleAt(target, ref, false);
+    setTimeout(done, POP_MS);
+  }
+
+  function popKeys(e) {
+    if (e.key === "Escape") { e.preventDefault(); closePop(); return; }
+    if (e.key !== "Tab") return;
+    var f = [].filter.call(pop.querySelectorAll("button, summary, a[href]"), function (x) {
+      return x.offsetParent !== null;
+    });
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (!pop.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   /* ---------- the drawing ---------- */
-  function draw(h, btn) {
-    clearTimers();
+  function draw(h) {
     hideTip();
     active = -1;
     svg.innerHTML = "";
@@ -254,9 +413,10 @@
     defs.appendChild(grad);
     svg.appendChild(defs);
 
-    var gEdges = el("g", {}), gFlow = el("g", {}), gNodes = el("g", {}), gLabels = el("g", {});
+    var gEdges = el("g", {}), gFlow = el("g", { class: "hs-flows" }), gNodes = el("g", {}), gLabels = el("g", {});
     svg.appendChild(gEdges); svg.appendChild(gFlow); svg.appendChild(gNodes); svg.appendChild(gLabels);
 
+    var labels = [];
     var k = N > 1 ? (RMAX - R0) / Math.sqrt(N - 1) : 0;
     var stagger = Math.min(14, 700 / Math.max(N, 1));
     nodes = h.links.map(function (l, i) {
@@ -276,13 +436,6 @@
       if (l.both) edge.setAttribute("marker-start", "url(#hs-arrow-" + key + ")");
       gEdges.appendChild(edge);
 
-      var flow = null;
-      if (!reduce) {
-        flow = el("line", Object.assign({ class: "hs-flowline", stroke: col }, line));
-        flow.style.animationDelay = (0.8 + i * stagger / 1000).toFixed(3) + "s," + (0.5 + i * stagger / 1000).toFixed(3) + "s";
-        gFlow.appendChild(flow);
-      }
-
       var g = el("g", { class: "hs-nb", "data-i": i });
       g.appendChild(el("circle", { class: "hit", cx: x.toFixed(1), cy: y.toFixed(1), r: Math.max(nr + 4, 11).toFixed(1) }));
       g.appendChild(el("circle", { class: "dot", cx: x.toFixed(1), cy: y.toFixed(1), r: nr.toFixed(1), fill: col }));
@@ -292,29 +445,38 @@
         var tx = x + Math.cos(a) * (nr + 6), ty = y + Math.sin(a) * (nr + 6) + 4;
         var anchor = Math.cos(a) > 0.35 ? "start" : Math.cos(a) < -0.35 ? "end" : "middle";
         if (anchor === "middle") ty = y + (Math.sin(a) > 0 ? nr + 15 : -(nr + 7));
-        var t = el("text", { class: "hs-label", x: tx.toFixed(1), y: ty.toFixed(1), "text-anchor": anchor });
+        var t = el("text", { class: "hs-label", x: tx.toFixed(1), y: ty.toFixed(1), "text-anchor": anchor, "data-i": i });
         t.textContent = l.name;
         gLabels.appendChild(t);
+        labels.push({ t: t, x: x, nr: nr });
       }
 
       if (!reduce) {
-        var d = (i * stagger).toFixed(0) + "ms";
-        g.style.transitionDelay = d;
+        g.style.transitionDelay = (i * stagger).toFixed(0) + "ms";
         edge.style.transitionDelay = (i * stagger + 120).toFixed(0) + "ms";
       }
-      return { g: g, edge: edge, flow: flow, l: l, x: x, y: y, r: nr, col: col };
+      return { g: g, edge: edge, l: l, line: line, col: col, delay: i * stagger };
     });
 
-    // the character in the middle
-    var gHub = el("g", { transform: "translate(" + C + " " + C + ")" });
-    var fly = el("g", { class: "hs-fly" });
-    fly.appendChild(el("circle", { r: HUB_R, fill: "url(#hs-grad)", stroke: "#fff", "stroke-width": "3" }));
-    fly.appendChild(el("circle", { r: HUB_R + 3, fill: "none", stroke: "#16224C", "stroke-width": "2" }));
+    labels.forEach(function (o) {
+      var w = o.t.getComputedTextLength(), anchor = o.t.getAttribute("text-anchor");
+      var x = Number(o.t.getAttribute("x"));
+      var lo = anchor === "start" ? x : anchor === "end" ? x - w : x - w / 2, hi = lo + w;
+      if (hi > 594) { o.t.setAttribute("text-anchor", "end"); o.t.setAttribute("x", (o.x - o.nr - 6).toFixed(1)); }
+      else if (lo < 6) { o.t.setAttribute("text-anchor", "start"); o.t.setAttribute("x", (o.x + o.nr + 6).toFixed(1)); }
+    });
+
+    // the character in the middle; clicking it opens their file again
+    var gHub = el("g", { class: "hs-hubnode", transform: "translate(" + C + " " + C + ")" });
+    var tt = el("title", {});
+    tt.textContent = "Open " + h.name + "’s file";
+    gHub.appendChild(tt);
+    gHub.appendChild(el("circle", { r: HUB_R, fill: "url(#hs-grad)", stroke: "#fff", "stroke-width": "3" }));
+    gHub.appendChild(el("circle", { r: HUB_R + 3, fill: "none", stroke: "#16224C", "stroke-width": "2" }));
     var ini = el("text", { "text-anchor": "middle", dy: "0.36em", fill: "#fff",
       style: "font-family:'Archivo Black',sans-serif;font-size:26px;letter-spacing:-.02em" });
     ini.textContent = m.ini;
-    fly.appendChild(ini);
-    gHub.appendChild(fly);
+    gHub.appendChild(ini);
     var hubName = el("text", { class: "hs-hubname", "text-anchor": "middle", y: HUB_R + 24 });
     hubName.textContent = h.name;
     gHub.appendChild(hubName);
@@ -325,33 +487,25 @@
       ? " characters link to them" : " characters they link to") +
       ". Use the arrow keys to step through them, most talked-about first.");
 
-    if (reduce) return;
+    // hidden until the file closes, so the links arrive in front of the reader
+    if (!reduce) net.classList.add("is-entering");
+  }
 
-    // start from the badge, fly to the middle; everything else grows in behind
-    net.classList.add("is-entering");
-    var badge = btn && btn.querySelector(".hs-badge");
-    var ctm = svg.getScreenCTM();
-    if (badge && ctm) {
-      var b = badge.getBoundingClientRect();
-      var pt = svg.createSVGPoint();
-      pt.x = b.left + b.width / 2;
-      pt.y = b.top + b.height / 2;
-      var u = pt.matrixTransform(ctm.inverse());
-      var s = (b.width / ctm.a) / (2 * (HUB_R + 3));
-      fly.style.transition = "none";
-      fly.style.transform = "translate(" + (u.x - C).toFixed(1) + "px," + (u.y - C).toFixed(1) + "px) scale(" + s.toFixed(3) + ")";
-      fly.getBoundingClientRect();
-    }
+  function reveal() {
+    revealed = true;
+    if (reduce) { net.classList.remove("is-entering"); return; }
+    var gFlow = svg.querySelector(".hs-flows");
+    nodes.forEach(function (n) {
+      var f = el("line", Object.assign({ class: "hs-flowline", stroke: n.col }, n.line));
+      f.style.animationDelay = (0.8 + n.delay / 1000).toFixed(3) + "s," + (0.5 + n.delay / 1000).toFixed(3) + "s";
+      gFlow.appendChild(f);
+    });
     requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        fly.style.transition = "";
-        fly.style.transform = "";
-        net.classList.remove("is-entering");
-      });
+      requestAnimationFrame(function () { net.classList.remove("is-entering"); });
     });
   }
 
-  /* ---------- the tooltip ---------- */
+  /* ---------- the hover card ---------- */
   function highlight(re, text) {
     return esc(text).replace(re, "<mark>$&</mark>");
   }
@@ -384,9 +538,9 @@
     tip.innerHTML = tipHTML(n);
     tip.hidden = false;
     // The card never sits on the drawing: on a wide screen it docks over the
-    // file column, level with the dot; on a phone it docks just under the
+    // guide column, level with the dot; on a phone it docks just under the
     // drawing. The dot and its link stay lit, so the pairing is still clear.
-    var box = net.getBoundingClientRect(), side = info.getBoundingClientRect();
+    var box = net.getBoundingClientRect(), side = guide.getBoundingClientRect();
     var dot = n.g.querySelector(".dot").getBoundingClientRect();
     var cy = dot.top + dot.height / 2 - box.top, left, top;
     if (side.left >= box.right - 2) {
@@ -414,13 +568,16 @@
       n.g.classList.toggle("is-on", on);
       n.edge.classList.toggle("is-on", on);
     });
+    [].forEach.call(svg.querySelectorAll(".hs-label"), function (t) {
+      t.classList.toggle("is-on", Number(t.getAttribute("data-i")) === i);
+    });
     net.classList.toggle("is-focus", i >= 0);
     active = i;
     if (i >= 0) { showTip(i); pinned = !!pin; } else hideTip();
   }
 
   svg.addEventListener("pointerover", function (e) {
-    if (pinned) return;
+    if (pinned || popOpen) return;
     var g = e.target.closest && e.target.closest(".hs-nb");
     if (g) activate(Number(g.getAttribute("data-i")), false);
   });
@@ -428,6 +585,8 @@
     if (!pinned) activate(-1);
   });
   svg.addEventListener("click", function (e) {
+    var hub = e.target.closest && e.target.closest(".hs-hubnode");
+    if (hub && current) { openPop(current, hub.querySelector("circle"), svg); return; }
     var g = e.target.closest && e.target.closest(".hs-nb");
     if (g) activate(Number(g.getAttribute("data-i")), true);
     else activate(-1);
@@ -446,7 +605,7 @@
   });
   document.addEventListener("click", function (e) {
     if (!pinned || active < 0) return;
-    if (svg.contains(e.target) || e.target.closest(".hs-all button")) return;
+    if (svg.contains(e.target) || pop.contains(e.target)) return;
     activate(-1);
   });
 
