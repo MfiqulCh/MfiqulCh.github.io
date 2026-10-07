@@ -232,6 +232,28 @@ def directed_swap(G, nswap, seed):
     return E
 
 
+def rewired(G, seed: int, per_edge: int = 10):
+    """
+    An undirected degree-preserving null: a copy of G with its edges shuffled by
+    double-edge swaps (A-B and C-D become A-D and C-B).
+
+    Every swap leaves all four endpoints with exactly the same degree, so the
+    result has G's degree sequence and nothing else of G's structure. That is
+    the null to compare against when a statistic could be a side effect of the
+    degree sequence alone — clustering and assortativity both can be.
+
+    `per_edge` swaps per edge; 10 is comfortably past the point where the
+    statistics stop drifting. Swaps never create a multi-edge or a self-loop,
+    so the result is still simple, and it may come apart into more components
+    than G had — which does not matter for a statistic that is not about
+    connectivity.
+    """
+    R = (G.to_undirected() if G.is_directed() else G).copy()
+    nx.double_edge_swap(R, nswap=per_edge * R.number_of_edges(),
+                        max_tries=10 ** 7, seed=seed)
+    return R
+
+
 def reciprocity_of(E) -> float:
     """Fraction of arrows whose reverse also exists, from an (m,2) edge array."""
     s = set(map(tuple, E.tolist()))

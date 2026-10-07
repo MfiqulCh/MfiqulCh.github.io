@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Week 1 · Networks — 303 Superheroes</title>
-<meta name="description" content="Degrees, distributions and components in the Wikipedia link network of 303 Marvel characters.">
+<meta name="description" content="Degrees, clustering, degree mixing and components in the Wikipedia link network of 303 Marvel characters.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
@@ -27,7 +27,8 @@
     <p class="kicker">What this page is</p>
     <h2>The plan</h2>
     <p>The course handed us a frozen network and a set of week-1 tools. This post is what we got when we pointed the second at the first.</p>
-    <p>We start by describing the network and being explicit about what somebody decided a node and an edge would be, because that decision is doing more work than anything we compute afterwards. Then the procedure: how we loaded it and how we checked the load. Then the substance — four degree distributions, a look at who the hubs are and why in-degree and out-degree pick out completely different characters, a drawing of the whole thing, and finally the components, which turned out to be the most interesting part of the week.</p>
+    <p>We start by describing the network and being explicit about what somebody decided a node and an edge would be, because that decision is doing more work than anything we compute afterwards. Then the procedure: how we loaded it and how we checked the load. Then the substance — four degree distributions, a look at who the hubs are and why in-degree and out-degree pick out completely different characters, how many triangles the network closes and whether that is more than chance, whether hubs prefer each other's company, a drawing of the whole thing, and finally the components, which turned out to be the most interesting part of the week.</p>
+    <p>Two of those sections needed a comparison rather than a measurement, so they are run against null models — randomised networks that keep some of the structure and destroy the rest. That is properly week 2's subject and we are borrowing it early, because a clustering coefficient or a correlation with nothing to compare it to is a number we would not know how to read.</p>
     <p>Every number below came out of our own notebook. Where the course page publishes the same number, we say so, because agreeing with a known answer is the only cheap way we have to tell whether our pipeline is right.</p>
   </section>
 
@@ -70,10 +71,11 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 
     <p>Then we checked the load against numbers the course publishes independently: 303 nodes and 1,784 directed edges, collapsing to 1,434 undirected pairs, ⟨k⟩ ≈ 9.47, density ≈ 3.1%, one component of 277, 17 isolates. All six matched. The two edge counts differ because 350 pairs link in both directions; each of those is two arrows but only one pair, and 1,784 − 350 = 1,434.</p>
     <p>Everything after that is degree bookkeeping and plotting, which the agent wrote and we read. The one place we made it show its work was the binning scheme, where the normalisation is easy to get wrong and the error looks like a result rather than a bug. Our check: where the bins are width 1, the binned curve has to sit exactly on the raw points. It does, to machine precision. If it hadn't, the culprit would almost certainly have been dividing by the wrong width.</p>
+    <p>The clustering and degree-mixing sections then need 500 randomised copies of the network apiece, which takes a couple of minutes and makes for a notebook nobody re-runs. Those replicates are cached under <code>data/derived/</code> and committed, so the notebook renders in seconds and the numbers here stay pinned to something anybody can reproduce. Deleting the cache recomputes it. Those nulls get their own check too: a random graph's clustering is known in advance to equal its density, and ours comes out at 0.031 against a density of 0.031.</p>
 
 
     <p class="codelink"><a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week1_marvel_network.ipynb">Read the notebook on GitHub →</a><br>
-    <span>Loads the graph, asserts the six published numbers, checks the binning, and writes every figure.</span></p>
+    <span>Loads the graph, asserts the six published numbers, checks the binning, builds the 500 null networks, and writes every figure.</span></p>
 
     <div class="chips">
       <span class="chip">Python 3</span><span class="chip">NetworkX 3.6</span>
@@ -203,6 +205,84 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 
   <!-- ============================================================ -->
   <section>
+    <p class="kicker">Clustering</p>
+    <h2>Triangles, and whether 3% density explains them</h2>
+    <p>Degree counts how many links a character has. The next question is whether those links know each other: of all the connected triples A–B–C, how many are closed into a triangle by a third link A–C? For a network made of stories that is a real question. It asks whether characters arrive in casts or in chains.</p>
+    <p>We do collapse to undirected here, one paragraph after refusing to. The refusal still stands for questions about importance; this is not one. A triangle is about who appears alongside whom, and which way the arrow points carries nothing we need.</p>
+    <p>There are two standard numbers and they are not the same, so we report both. <strong>Transitivity</strong> is global — three times the triangles divided by the number of connected triples, one figure for the whole network. It is dominated by the high-degree characters, because they sit in most of the triples. <strong>Average clustering</strong> works out the closed share for each character separately and then averages the characters, which gives Spider-Man and a nine-person side cast one vote each. Quoting either one as "the clustering" hides the difference.</p>
+
+    <table>
+      <tr><th>Quantity</th><th style="text-align:right">Value</th></tr>
+      <tr><td>Triangles</td><td class="num">1,839</td></tr>
+      <tr><td>Connected triples</td><td class="num">30,231</td></tr>
+      <tr><td>Transitivity, 3T / triples</td><td class="num">0.182</td></tr>
+      <tr><td>Average clustering ⟨C⟩</td><td class="num">0.307</td></tr>
+      <tr><td>Density, for comparison</td><td class="num">0.031</td></tr>
+    </table>
+
+    <p style="margin-top:26px">One caveat before any of that gets interpreted. Clustering is undefined for a character with fewer than two links, because there is no triple to close, and 35 of the 303 are in that position — the 17 isolates plus 18 more with a single link. NetworkX records them as 0, which is a different claim from "undefined", and it pulls the average down. Over the 268 characters where the number means something, average clustering is <strong>0.348</strong> rather than 0.307. We carry the 0.307 through the comparison below because the null models are computed exactly the same way, and the comparison has to be like for like.</p>
+
+    <h3>Compared with what?</h3>
+    <p>18.2% of triples closing is not interpretable on its own. It needs a <em>compared with what</em>, and there are two different ones worth asking.</p>
+    <p><strong>A random graph with the same number of nodes and edges.</strong> Every pair is wired with the same probability, so the chance any triple closes is just that probability — which means the clustering of such a graph is its density, about 3.1%. Our replicates land on 0.031, agreeing with the theory to three decimals, which is a free check that the null is built right. This is the weak comparison: it knows how big the network is and nothing else.</p>
+    <p><strong>The same network with its edges shuffled, every character keeping their exact degree.</strong> This one is the honest comparison, and it exists because heavy-tailed degree sequences manufacture triangles for free. Spider-Man has 106 neighbours; some of those 106 are bound to link to each other whether or not anything meaningful is going on. A null that keeps the degrees has that effect baked in, so beating it means the triangles are <em>not</em> a side effect of a handful of characters being enormous.</p>
+    <p>500 replicates of each, by double-edge swaps that leave all four endpoints at the same degree.</p>
+
+    <figure class="wide">
+      <img src="figures/clustering.svg" alt="Left: clustering coefficient against degree on a log axis, declining from about 0.53 for two-link characters to 0.11 for the five biggest hubs. Right: average clustering of the Marvel network at 0.307 against a random graph at 0.031 and a degree-preserving rewiring at 0.143.">
+      <figcaption>Left: every character's clustering against their degree, with the mean over each degree band in red. Right: the network's average clustering against 500 replicates of each null — the bar is the full range the replicates covered, the diamond their mean.</figcaption>
+    </figure>
+
+    <table>
+      <tr><th>Average over 500 replicates</th><th style="text-align:right">Marvel</th><th style="text-align:right">random</th><th style="text-align:right">rewired</th></tr>
+      <tr><td>Triangles</td><td class="num">1,839</td><td class="num">142</td><td class="num">1,157</td></tr>
+      <tr><td>Transitivity</td><td class="num">0.182</td><td class="num">0.031</td><td class="num">0.115</td></tr>
+      <tr><td>Average clustering</td><td class="num">0.307</td><td class="num">0.031</td><td class="num">0.143</td></tr>
+      <tr><td>How many standard deviations out</td><td class="num">—</td><td class="num">99</td><td class="num">20</td></tr>
+    </table>
+
+    <h3>What the comparison says</h3>
+    <p>The network closes <strong>5.8 times</strong> as many triples as a random graph of the same size, and <strong>1.6 times</strong> as many as its own degree sequence forces. Not one of the 500 rewired replicates came close: the most clustered of them reached 0.174 against the real 0.307. So the degree sequence explains a good deal of the clustering — it takes you from 0.031 to 0.143, most of the way in absolute terms — and then stops, well short.</p>
+    <p>The left panel says where the remainder comes from, and it is not the hubs. Clustering falls steadily with degree: characters with two or three links close <strong>53%</strong> of their triples, characters with 21 to 40 close 21%, and the five biggest close 11%. Spider-Man is at 0.083. The triangles are being made by small, tight casts rather than by the famous.</p>
+
+    <div class="callout">
+      <p><strong>Which is the nine-node island all over again.</strong> Those nine characters have 13 links among themselves and an average clustering of <strong>0.504</strong>, against 0.307 for the network. The structure we stumbled on in the components section is the same structure this section measures from the other end: a cancelled 1980s series is a cast where everyone appears with everyone, and a cast where everyone appears with everyone is a pile of triangles.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <p class="kicker">Degree mixing</p>
+    <h2>Do hubs link to hubs?</h2>
+    <p>Back to the hubs for a moment, with one more question about them. Degree assortativity <em>r</em> is the correlation between the degrees at the two ends of a link. Positive means hubs pair off with hubs; negative means hubs pair with the obscure. Ours is <strong>−0.098</strong>, and the textbook reading of that is a mildly disassortative network — the famous attach to the unknown.</p>
+    <p>We think the textbook reading is wrong here, and the reason is worth more than the number.</p>
+    <p>A simple network containing a character with 106 links <em>cannot</em> look assortative. There is only one Spider-Man, and his 106 links have no choice but to land on characters smaller than him. The same goes for Hulk's 65 and Wolverine's 63. Some amount of negative <em>r</em> is forced by the degree sequence before any editorial decision is made, and a measurement that cannot come out any other way is not a finding.</p>
+    <p>The rewired null from the previous section settles it, because it has exactly the same degrees and therefore exactly the same constraint.</p>
+
+    <figure class="wide">
+      <img src="figures/assortativity.svg" alt="Left: average neighbour degree against degree on log axes, flat around 22 to 25 across the middle, 45.5 for single-link characters and 17.3 for the five biggest. Right: assortativity of −0.098 for the Marvel network against about 0 for a random graph and −0.121 for a degree-preserving rewiring.">
+      <figcaption>Left: the average degree of a character's neighbours, against their own degree. Right: the network's assortativity against the same two nulls. The rewired null sits <em>further</em> from zero than the real network does.</figcaption>
+    </figure>
+
+    <p>The random graph gives <em>r</em> ≈ 0, as it should — no constraint, no preference. The rewiring gives <strong>−0.121</strong>. So the degree sequence alone produces <em>more</em> disassortativity than we actually observe, and the real network sits on the assortative side of its own null rather than the disassortative one. Only <strong>7 of the 500</strong> rewired replicates were as assortative as the real thing or more.</p>
+    <p>That is a reversal of the naive reading, and we want to be careful about how hard we push it. 7 in 500 is a small tail but not an overwhelming one, and it is a single statistic on a single network. What we are confident saying is the negative claim: the mild disassortativity in this network is an artefact of the degree sequence, not evidence that editors link the famous to the obscure. What we would not yet claim is that there is a real assortative preference underneath — that is what the number hints at, and it is the kind of hint we would want a second network or a second statistic to back up.</p>
+    <p>The left panel shows why <em>r</em> is so small in the first place. Average neighbour degree barely moves across the middle of the range — characters with 2 to 3 links average a neighbour of 22, characters with 21 to 40 average 21. Only the two ends do anything: the 18 characters with a single link average a neighbour of <strong>45.5</strong>, because a character mentioned exactly once is usually mentioned by somebody big, and the five biggest hubs average <strong>17.3</strong>. A whole correlation coefficient is being driven by the edges of the distribution.</p>
+
+    <details class="as-table">
+      <summary>The four directed versions, for the record</summary>
+      <table>
+        <tr><th>Correlating…</th><th style="text-align:right">r</th></tr>
+        <tr><td>out-degree of source with out-degree of target</td><td class="num">+0.107</td></tr>
+        <tr><td>in-degree of source with out-degree of target</td><td class="num">+0.100</td></tr>
+        <tr><td>in-degree of source with in-degree of target</td><td class="num">−0.007</td></tr>
+        <tr><td>out-degree of source with in-degree of target</td><td class="num">−0.023</td></tr>
+      </table>
+      <p style="font-size:.9rem;color:var(--muted);margin-top:14px">Collapsing to undirected throws these apart. The two positive ones both end in out-degree: a chatty article tends to link to another chatty article, which is close to saying that long articles cite long articles. The two near-zero ones end in in-degree — knowing how connected the source is tells you nothing about how famous its target will be. These need their own null before we would read anything into them, which is why they are tucked away here.</p>
+    </details>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
     <p class="kicker">The drawing</p>
     <h2>Seeing all 303 at once</h2>
     <p>Before measuring anything else we wanted to look at it. The giant component is drawn with a force-directed layout, which pulls connected nodes together and pushes everything else apart; node size is in-degree, and the five biggest hubs are marked.</p>
@@ -245,8 +325,9 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
   <section>
     <p class="kicker">Wrapping up</p>
     <h2>What we'd chase next</h2>
-    <p>The thing we keep coming back to is that the sharpest result this week came from the smallest structure. The degree distribution told us the network is heavy-tailed, which is true of nearly every network anyone has ever measured and therefore not very surprising. The nine-node island told us something specific about how Wikipedia's editors treat a discontinued 1980s series, and we would never have gone looking for it.</p>
-    <p>Open questions we're taking into week 2: whether that in-degree tail survives being tested properly rather than eyeballed off a log–log plot, and whether the hub ranking is really about fame or partly about article age — the characters at the top have all had Wikipedia articles for twenty years, and an old article has had longer to collect in-links from every article written since.</p>
+    <p>The thing we keep coming back to is that the sharpest result this week came from the smallest structure. The degree distribution told us the network is heavy-tailed, which is true of nearly every network anyone has ever measured and therefore not very surprising. The nine-node island told us something specific about how Wikipedia's editors treat a discontinued 1980s series, and we would never have gone looking for it. The clustering section then found the same cast from the other direction, as a pile of triangles — which is the first time two of our measurements have met.</p>
+    <p>The other thing we are taking away is how much work the null models did. Two of the numbers on this page reverse their meaning depending on what you compare them with. 18% of triples closing sounds unremarkable until you see 3% from a random graph, and <em>r</em> = −0.098 looks like evidence for a preference until the degree-preserving null produces more disassortativity than the real network has. Neither of those is visible without the comparison, and we only built the comparison because the first one seemed too easy.</p>
+    <p>Open questions we're taking into week 2: whether that in-degree tail survives being tested properly rather than eyeballed off a log–log plot; whether the hint of assortativity under the rewired null is real or a 7-in-500 coincidence; and whether the hub ranking is really about fame or partly about article age — the characters at the top have all had Wikipedia articles for twenty years, and an old article has had longer to collect in-links from every article written since.</p>
   </section>
 
   <footer>

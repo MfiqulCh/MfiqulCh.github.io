@@ -11,7 +11,7 @@ this repo is where we take it apart, one post per week.
 
 | | | |
 |---|---|---|
-| **Week 1** | Networks — degrees, distributions, components | [post](https://mfiqulch.github.io/weeks/week1/week1.html) · [notebook](notebooks/week1_marvel_network.ipynb) |
+| **Week 1** | Networks — degrees, clustering, degree mixing, components | [post](https://mfiqulch.github.io/weeks/week1/week1.html) · [notebook](notebooks/week1_marvel_network.ipynb) |
 | **Week 2** | Models and null models — auditing week 1 | [post](https://mfiqulch.github.io/weeks/week2/week2.html) · [notebook](notebooks/week2_null_models.ipynb) |
 | **Week 3** | Who matters, and why — centrality against the right null | [post](https://mfiqulch.github.io/weeks/week3/week3.html) · [notebook](notebooks/week3_centrality.ipynb) |
 | **Week 4** | Communities — on 1,444 philosophers | [post](https://mfiqulch.github.io/weeks/week4/week4.html) · [notebook](notebooks/week4_communities.ipynb) |
@@ -51,8 +51,8 @@ Open anything in `notebooks/` and run it top to bottom. The paths in
 `src/marvel.py` resolve relative to the repo, so it works from any working
 directory — but keep the notebooks where they are.
 
-**On `data/derived/`.** Week 2 builds 600 null networks, which takes several
-minutes and makes for a notebook nobody re-runs. Those replicates are cached as
+**On `data/derived/`.** Week 1 builds 1,000 null networks and week 2 another 600,
+which takes minutes and makes for a notebook nobody re-runs. Those replicates are cached as
 JSON-lines and committed, so the notebook renders in seconds and the numbers in
 the post stay pinned to something reproducible. To recompute from scratch, delete
 the files or pass `force=True` to `marvel.cached`.
