@@ -228,7 +228,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <p><strong>The same network with its edges shuffled, every character keeping their exact degree.</strong> This one is the honest comparison, and it exists because heavy-tailed degree sequences manufacture triangles for free. Spider-Man has 106 neighbours; some of those 106 are bound to link to each other whether or not anything meaningful is going on. A null that keeps the degrees has that effect baked in, so beating it means the triangles are <em>not</em> a side effect of a handful of characters being enormous.</p>
     <p>500 replicates of each, by double-edge swaps that leave all four endpoints at the same degree.</p>
 
-    <figure class="wide">
+    <figure>
       <img src="figures/clustering.svg" alt="Left: clustering coefficient against degree on a log axis, declining from about 0.53 for two-link characters to 0.11 for the five biggest hubs. Right: average clustering of the Marvel network at 0.307 against a random graph at 0.031 and a degree-preserving rewiring at 0.143.">
       <figcaption>Left: every character's clustering against their degree, with the mean over each degree band in red. Right: the network's average clustering against 500 replicates of each null — the bar is the full range the replicates covered, the diamond their mean.</figcaption>
     </figure>
@@ -259,7 +259,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <p>A simple network containing a character with 106 links <em>cannot</em> look assortative. There is only one Spider-Man, and his 106 links have no choice but to land on characters smaller than him. The same goes for Hulk's 65 and Wolverine's 63. Some amount of negative <em>r</em> is forced by the degree sequence before any editorial decision is made, and a measurement that cannot come out any other way is not a finding.</p>
     <p>The rewired null from the previous section settles it, because it has exactly the same degrees and therefore exactly the same constraint.</p>
 
-    <figure class="wide">
+    <figure>
       <img src="figures/assortativity.svg" alt="Left: average neighbour degree against degree on log axes, flat around 22 to 25 across the middle, 45.5 for single-link characters and 17.3 for the five biggest. Right: assortativity of −0.098 for the Marvel network against about 0 for a random graph and −0.121 for a degree-preserving rewiring.">
       <figcaption>Left: the average degree of a character's neighbours, against their own degree. Right: the network's assortativity against the same two nulls. The rewired null sits <em>further</em> from zero than the real network does.</figcaption>
     </figure>
