@@ -55,6 +55,7 @@
   var zoomBox = net.querySelector(".hs-zoom");
   var hint = net.querySelector(".hs-hint");
   var keys = root.querySelector(".hs-keys");
+  var guide = root.querySelector(".hs-guide");
   var nojs = root.querySelector(".hs-nojs");
   if (nojs) nojs.hidden = true;
   keys.querySelector(".hs-keys-how").textContent = coarse
@@ -200,6 +201,21 @@
       (mode === "in" ? " links point at one of these five." : " links are written by these five.") +
       "</span><em>Pick one to see who " + (mode === "in" ? "links to them." : "they link to.") + "</em>";
     empty.hidden = false;
+    guide.innerHTML =
+      '<p class="hs-guide-kicker">How to read the screen</p>' +
+      "<p>" + (mode === "in"
+        ? "Pick one of the five. The screen fills with every character whose article links to them, each arrow pointing in."
+        : "Pick one of the five. The screen fills with every character their article links to, each arrow pointing out.") +
+      " Drag to move around, zoom in to see every name, and open their file from the button at the bottom left.</p>" +
+      '<ul class="hs-guide-key">' +
+        '<li><span class="hs-swatch red"></span>links both ways</li>' +
+        '<li><span class="hs-swatch blue"></span>one way only</li>' +
+        '<li><span class="hs-swatch size"></span>bigger dot: more links in of its own</li>' +
+        '<li><span class="hs-swatch near"></span>' + (mode === "in"
+          ? "nearer the middle: their article names the character in the middle more often"
+          : "nearer the middle: the middle character\u2019s article names them more often") + "</li>" +
+      "</ul>" +
+      '<p class="hs-guide-hint">The arrow at the bottom of the drawer slides it up out of the way.</p>';
   }
 
   /* ---------- picking a character ---------- */
