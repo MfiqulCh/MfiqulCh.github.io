@@ -75,7 +75,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 
 
     <p class="codelink"><a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week1_marvel_network.ipynb">Read the notebook on GitHub →</a><br>
-    <span>Loads the graph, asserts the six published numbers, checks the binning, builds the 500 null networks, and writes every figure.</span></p>
+    <span>Loads the graph, asserts the six published numbers, checks the binning, builds the 500 null networks, writes the data behind the hub screen, and writes every figure.</span></p>
 
     <div class="chips">
       <span class="chip">Python 3</span><span class="chip">NetworkX 3.6</span>
@@ -173,23 +173,95 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <h2>Being famous and being talkative are different jobs</h2>
     <p>If the two distributions have different shapes, the natural next question is whether they have different occupants. They do — almost entirely.</p>
 
-    <table>
-      <tr><th>Most linked to</th><th style="text-align:right">in</th><th style="text-align:right">out</th></tr>
-      <tr><td>Spider-Man</td><td class="num">106</td><td class="num">9</td></tr>
-      <tr><td>Hulk</td><td class="num">64</td><td class="num">10</td></tr>
-      <tr><td>Wolverine</td><td class="num">60</td><td class="num">17</td></tr>
-      <tr><td>Doctor Strange</td><td class="num">50</td><td class="num">17</td></tr>
-      <tr><td>Deadpool</td><td class="num">33</td><td class="num">19</td></tr>
-    </table>
+    <p class="hs-howto">Pick <strong>In</strong> or <strong>Out</strong>, open the drawer, and choose a character. They move to the middle of the screen and every link arrives — or leaves — around them. Hover or tap any dot for the sentence that made the link.</p>
 
-    <table style="margin-top:34px">
-      <tr><th>Links out most</th><th style="text-align:right">out</th><th style="text-align:right">in</th></tr>
-      <tr><td>Betsy Braddock</td><td class="num">28</td><td class="num">7</td></tr>
-      <tr><td>Cloak and Dagger</td><td class="num">24</td><td class="num">11</td></tr>
-      <tr><td>Adam Warlock</td><td class="num">22</td><td class="num">8</td></tr>
-      <tr><td>Venom</td><td class="num">21</td><td class="num">17</td></tr>
-      <tr><td>She-Hulk</td><td class="num">20</td><td class="num">29</td></tr>
-    </table>
+    <div class="hs" id="hubscope">
+      <div class="hs-tabs" role="tablist" aria-label="Rank the characters by">
+        <button class="hs-tab" type="button" role="tab" id="hs-tab-in" data-mode="in" aria-selected="true" aria-controls="hs-screen">In<span>links received</span></button>
+        <button class="hs-tab" type="button" role="tab" id="hs-tab-out" data-mode="out" aria-selected="false" aria-controls="hs-screen" tabindex="-1">Out<span>links made</span></button>
+      </div>
+
+      <div class="hs-screen" id="hs-screen" role="tabpanel" aria-labelledby="hs-tab-in">
+        <div class="hs-drawer is-open">
+          <p class="hs-drawer-title">The five most linked to</p>
+          <div class="hs-picks" id="hs-picks"></div>
+          <button class="hs-toggle" type="button" aria-expanded="true" aria-controls="hs-picks"><span class="hs-chev" aria-hidden="true"></span><span class="sr">Hide the five</span></button>
+        </div>
+
+        <div class="hs-stage">
+          <div class="hs-net">
+            <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Pick a character to draw their links"></svg>
+            <div class="hs-empty"><strong>17.5%</strong><span>of all 1,784 links point at one of these five.</span><em>Pick one to see who links to them.</em></div>
+            <div class="hs-tip" role="status" aria-live="polite" hidden></div>
+          </div>
+          <aside class="hs-info" aria-live="polite"></aside>
+        </div>
+      </div>
+      <p class="hs-nojs">The interactive screen needs JavaScript. The same ten characters are in the tables below.</p>
+    </div>
+
+    <!-- one template per character: colours and initials for the badge, and the paragraph on why.
+         Every number in these paragraphs is printed by the "Why these ten" cell of the week 1 notebook. -->
+    <template class="hs-hub" data-id="Spider-Man" data-ini="SM" data-c1="#A8182A" data-c2="#1D3C8F" data-title="Why 106 arrows land here">
+      <p>In 104 of the 106 articles that link to him, we can find the sentence that names him — 1,283 sentences between them, 154 in Venom's alone. A lot of that is shared origin: for 33 of the 106, the sentence about their first appearance names him, and 15 of those give the issue number of a Spider-Man comic. Nine are named after him outright, from Spider-Woman to Spider-UK.</p>
+      <p>The arrows barely go back because his own article, the 9th longest of the 303, is busy with Mary Jane (27 mentions), the Green Goblin (17), Aunt May (15) and Doctor Octopus (13) — and none of them is in the superhero category this network is built from. All nine characters he does link to link back.</p>
+    </template>
+    <template class="hs-hub" data-id="Hulk" data-ini="HU" data-c1="#24482A" data-c2="#6B4C9A" data-title="Fights, mostly">
+      <p>When we typed every link by its sentence in week 5, 32 of these 64 came out as fights — half, the highest share of the five, from a label that is right about four times in five. Abomination's article names him 69 times, starting with "one of the main enemies of the superhero the Hulk".</p>
+      <p>Then there's the name. Five of the 64 carry it — She-Hulk, Devil Hulk, Hulk 2099, She-Hulk (Lyra) and Hulkling — and She-Hulk, his cousin, names him in 71 sentences, more than anyone. For 12 of the 64, the sentence about their first appearance mentions him.</p>
+    </template>
+    <template class="hs-hub" data-id="Wolverine_(character)" data-ini="WV" data-c1="#1F3F7A" data-c2="#C99A1E" data-title="Linked from the top">
+      <p>His in-links come from the top of the network as well as the bottom: 14 of the 60 characters who link to him have 20 or more in-links of their own — Jean Grey, Storm and Cyclops among them — the most of these five. He links back to 14 of them, also the most.</p>
+      <p>The X-Men run through it. In 24 of the 60 articles, a sentence naming him also mentions the X-Men, X-Force, X-Factor, Excalibur or mutants. Betsy Braddock's article names him 35 times; Jubilee's calls her "particularly associated with Wolverine".</p>
+    </template>
+    <template class="hs-hub" data-id="Doctor_Strange" data-ini="DS" data-c1="#1E2F6B" data-c2="#B8322C" data-title="Called in, rarely the story">
+      <p>He is who other articles reach for when something supernatural happens. In 21 of the 50, a sentence naming him also mentions magic, the mystic, sorcery, the occult, demons or the supernatural — Doctor Druid, Jericho Drumm, Satana and both Ghost Riders among them.</p>
+      <p>But they mention him briefly: 136 sentences across all 50 articles, a median of 2 each, against 4 for Spider-Man. No article gives him more than 14 (Scarlet Witch's). Lots of stories call him in; hardly any are about him.</p>
+    </template>
+    <template class="hs-hub" data-id="Deadpool" data-ini="DP" data-c1="#1A1A1D" data-c2="#B3161B" data-title="Sidekicks, namesakes, sparring partners">
+      <p>His most talkative linkers are a sidekick (Bob, Agent of Hydra, 27 sentences), two characters who borrowed his name (Gwenpool, 17, and Dogpool, 11) and Cable (13), whose article calls him "an on-again, off-again ally".</p>
+      <p>He links back to 11 of the 33. That's a third, the highest share of these five: mention Deadpool, and there's a decent chance Deadpool mentions you back.</p>
+    </template>
+    <template class="hs-hub" data-id="Betsy_Braddock" data-ini="BB" data-c1="#3E2266" data-c2="#B2357E" data-title="A long life, told through the X-Men">
+      <p>Hers is the 2nd longest article of all 303, at 597 sentences, and it works its way through the X-Men: 14 of her 28 links sit in sentences that mention the X-Men, X-Force, X-Factor, Excalibur or mutants. Wolverine alone gets 35.</p>
+      <p>She links upward. The median character she links to has 15.5 in-links, five times the network's median of 3, and only 7 of the 28 link back. 15 of her links rest on a single sentence — often a name in passing.</p>
+    </template>
+    <template class="hs-hub" data-id="Cloak_and_Dagger_(characters)" data-ini="CD" data-c1="#15151F" data-c2="#A9A397" data-title="Two characters, one article">
+      <p>The article covers a pair — it names Cloak 127 times and Dagger 123 — so one page carries two characters' worth of team-ups. Spider-Man is its biggest link by far, at 17 sentences, beginning with their first appearance in <em>Peter Parker, the Spectacular Spider-Man</em> #64.</p>
+      <p>Nobody else gets more than three sentences, and 14 of the 24 links rest on just one. The characters it reaches are well known, with a median of 12 in-links each; 7 of them link back.</p>
+    </template>
+    <template class="hs-hub" data-id="Adam_Warlock" data-ini="AW" data-c1="#6E3510" data-c2="#C98A1A" data-title="The guest star">
+      <p>14 of his 22 links rest on a single sentence: his article passes through other characters' stories rather than settling in them. And it passes through famous ones — the median character he links to has 16 in-links, the highest of these five. Doctor Strange (9 sentences), the Hulk (8) and Star-Lord (7) get the most.</p>
+      <p>Only 5 of the 22 link back. He visits the famous; the famous rarely return the visit.</p>
+    </template>
+    <template class="hs-hub" data-id="Venom_(character)" data-ini="VE" data-c1="#0E0E10" data-c2="#6C7380" data-title="A costume with several owners">
+      <p>The article follows the symbiote rather than one person, and the symbiote has had several hosts — 34 of its sentences mention one — so each host's world comes along. Spider-Man dominates at 154 sentences, starting with its introduction as a living alien costume in <em>The Amazing Spider-Man</em> #252. Eddie Brock is next at 65, the host "with whom it first became Venom".</p>
+      <p>At 510 sentences it is the 5th longest article here, and 9 of its 21 links come back.</p>
+    </template>
+    <template class="hs-hub" data-id="She-Hulk" data-ini="SH" data-c1="#2C5E35" data-c2="#8E5DB0" data-title="The one who gets answered">
+      <p>At 550 sentences, hers is the 4th longest article of the 303. 12 of her 20 links come back, the most of these five, and she is the only one of them who receives more links (29) than she makes — enough to rank 6th on the other tab, just behind Deadpool.</p>
+      <p>71 of her sentences name the Hulk, her cousin. She ties U.S. Agent on 20 out-links and takes fifth place on alphabetical order.</p>
+    </template>
+
+    <details class="as-table hs-tables">
+      <summary>The same ten as two tables</summary>
+      <table>
+        <tr><th>Most linked to</th><th style="text-align:right">in</th><th style="text-align:right">out</th></tr>
+        <tr><td>Spider-Man</td><td class="num">106</td><td class="num">9</td></tr>
+        <tr><td>Hulk</td><td class="num">64</td><td class="num">10</td></tr>
+        <tr><td>Wolverine</td><td class="num">60</td><td class="num">17</td></tr>
+        <tr><td>Doctor Strange</td><td class="num">50</td><td class="num">17</td></tr>
+        <tr><td>Deadpool</td><td class="num">33</td><td class="num">19</td></tr>
+      </table>
+      <table style="margin-top:28px">
+        <tr><th>Links out most</th><th style="text-align:right">out</th><th style="text-align:right">in</th></tr>
+        <tr><td>Betsy Braddock</td><td class="num">28</td><td class="num">7</td></tr>
+        <tr><td>Cloak and Dagger</td><td class="num">24</td><td class="num">11</td></tr>
+        <tr><td>Adam Warlock</td><td class="num">22</td><td class="num">8</td></tr>
+        <tr><td>Venom</td><td class="num">21</td><td class="num">17</td></tr>
+        <tr><td>She-Hulk</td><td class="num">20</td><td class="num">29</td></tr>
+      </table>
+    </details>
 
     <figure>
       <img src="figures/in_vs_out.svg" alt="Scatter of in-degree against out-degree for all 303 characters, with Spider-Man far above the diagonal and Betsy Braddock far to the right of it.">
@@ -339,5 +411,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 </div>
 
 <script src="../../assets/js/flip.js"></script>
+<script src="data/hubs.js"></script>
+<script src="../../assets/js/hubscope.js"></script>
 </body>
 </html>

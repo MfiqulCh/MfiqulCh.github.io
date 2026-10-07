@@ -29,7 +29,8 @@ and the post needs fixing.
 ├── weeks/
 │   └── weekN/
 │       ├── weekN.html      the post
-│       └── figures/        SVGs, all written by the notebook
+│       ├── figures/        SVGs, all written by the notebook
+│       └── data/           week 1 only: hubs.js, the hub screen's data, also written by the notebook
 ├── notebooks/              one per week — the actual analysis
 ├── src/marvel.py           shared helpers: loading, palette, binning, nulls
 ├── data/
@@ -37,7 +38,10 @@ and the post needs fixing.
 │   └── derived/            cached null-model replicates (see below)
 └── assets/
     ├── css/site.css        one stylesheet for every post
-    └── js/flip.js          the flip-card panels in week 1
+    └── js/
+        ├── flip.js         the flip-card panels in week 1
+        ├── hubscope.js     the interactive hub screen in week 1
+        └── roster.js       the character dossiers in weeks 3 and 5
 ```
 
 ## Running the notebooks
