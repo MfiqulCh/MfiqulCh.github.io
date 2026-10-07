@@ -173,7 +173,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <h2>Being famous and being talkative are different jobs</h2>
     <p>If the two distributions have different shapes, the natural next question is whether they have different occupants. They do — almost entirely.</p>
 
-    <p class="hs-howto">Pick <strong>In</strong> or <strong>Out</strong>, open the drawer, and choose a character. They move to the middle of the screen and every link arrives — or leaves — around them. Hover or tap any dot for the sentence that made the link.</p>
+    <p class="hs-howto">Pick <strong>In</strong> or <strong>Out</strong>, then a character. The screen fills with every link arriving at them — or leaving them. Drag to move around, zoom in for every name, and hover or tap a dot for the sentence that made the link.</p>
 
     <div class="hs" id="hubscope">
       <div class="hs-tabs" role="tablist" aria-label="Rank the characters by">
@@ -190,11 +190,24 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 
         <div class="hs-stage">
           <div class="hs-net">
-            <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Pick a character to draw their links"></svg>
+            <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pick a character to draw their links"></svg>
             <div class="hs-empty"><strong>17.5%</strong><span>of all 1,784 links point at one of these five.</span><em>Pick one to see who links to them.</em></div>
+            <button class="hs-open" type="button" hidden>Open file</button>
+            <div class="hs-zoom" role="group" aria-label="Zoom the drawing" hidden>
+              <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+              <button type="button" data-zoom="out" aria-label="Zoom out">&minus;</button>
+              <button type="button" data-zoom="reset" aria-label="Back to the whole drawing">&#x27F2;</button>
+            </div>
+            <p class="hs-hint" aria-hidden="true"></p>
             <div class="hs-tip" role="status" aria-live="polite" hidden></div>
           </div>
-          <aside class="hs-info" aria-live="polite"></aside>
+          <ul class="hs-keys" hidden>
+            <li><span class="hs-swatch red"></span>links both ways</li>
+            <li><span class="hs-swatch blue"></span>one way</li>
+            <li><span class="hs-swatch size"></span>bigger dot: more links in</li>
+            <li><span class="hs-swatch near"></span>closer: named more often</li>
+            <li class="hs-keys-how"></li>
+          </ul>
         </div>
       </div>
       <p class="hs-nojs">The interactive screen needs JavaScript. The same ten characters are in the tables below.</p>
