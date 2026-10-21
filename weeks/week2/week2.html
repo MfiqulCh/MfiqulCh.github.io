@@ -59,11 +59,14 @@ assert sorted(d for _,d in sw.degree()) == sorted(d for _,d in GC.degree())</pre
       <figcaption>Clustering against how hard we shuffle. It stops falling well before 5<em>m</em>, which is where we take our measurements — so the null is not quietly still the real network.</figcaption>
     </figure>
 
+    <p class="codelink"><a href="https://github.com/MfiqulCh/MfiqulCh.github.io/blob/main/notebooks/week2_null_models.ipynb">Read the notebook on GitHub →</a><br>
+    <span>Loads the giant component and asserts its size, checks it against the course's published numbers, builds the 600 null networks while asserting every shuffle keeps each character's degree, runs our own directed swap for reciprocity, and writes every figure.</span></p>
+
     <div class="chips">
       <span class="chip">Python 3</span><span class="chip">NetworkX 3.6</span>
-      <span class="chip">300 reps per null</span>
-      <span class="chip">5m edge swaps</span>
-      <span class="chip">directed swap: ours</span>
+      <span class="chip">NumPy</span><span class="chip">pandas</span>
+      <span class="chip">matplotlib</span><span class="chip">Jupyter</span>
+      <span class="chip">agentic coding tool</span>
     </div>
 
     <div class="callout">
