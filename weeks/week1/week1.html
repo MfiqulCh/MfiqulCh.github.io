@@ -257,35 +257,18 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
       <p>71 of her sentences name the Hulk, her cousin. She ties U.S. Agent on 20 out-links and takes fifth place on alphabetical order.</p>
     </template>
 
-    <details class="as-table hs-tables">
-      <summary>The same ten as two tables</summary>
-      <table>
-        <tr><th>Most linked to</th><th style="text-align:right">in</th><th style="text-align:right">out</th></tr>
-        <tr><td>Spider-Man</td><td class="num">106</td><td class="num">9</td></tr>
-        <tr><td>Hulk</td><td class="num">64</td><td class="num">10</td></tr>
-        <tr><td>Wolverine</td><td class="num">60</td><td class="num">17</td></tr>
-        <tr><td>Doctor Strange</td><td class="num">50</td><td class="num">17</td></tr>
-        <tr><td>Deadpool</td><td class="num">33</td><td class="num">19</td></tr>
-      </table>
-      <table style="margin-top:28px">
-        <tr><th>Links out most</th><th style="text-align:right">out</th><th style="text-align:right">in</th></tr>
-        <tr><td>Betsy Braddock</td><td class="num">28</td><td class="num">7</td></tr>
-        <tr><td>Cloak and Dagger</td><td class="num">24</td><td class="num">11</td></tr>
-        <tr><td>Adam Warlock</td><td class="num">22</td><td class="num">8</td></tr>
-        <tr><td>Venom</td><td class="num">21</td><td class="num">17</td></tr>
-        <tr><td>She-Hulk</td><td class="num">20</td><td class="num">29</td></tr>
-      </table>
-    </details>
+    <p>The screen shows the two ends of the scale, and the two ends don't share a single character: none of the five most linked to is among the five who link out most. But ten extremes can be made to say almost anything, so the fair test is everyone. Here are all 303 on one chart, links made along the bottom and links received up the side, with the screen's ten picked out.</p>
 
     <figure>
-      <img src="figures/in_vs_out.svg" alt="Scatter of in-degree against out-degree for all 303 characters, with Spider-Man far above the diagonal and Betsy Braddock far to the right of it.">
-      <figcaption>Every character placed by how many links it makes against how many it receives. The dashed line is where the two would be equal. Almost nobody is on it.</figcaption>
+      <img src="figures/in_vs_out.svg" alt="Scatter of in-degree against out-degree for all 303 characters. The five most linked-to characters, in red, sit far above the diagonal, Spider-Man highest; the five who link out most, in blue, sit to the right of it, Betsy Braddock furthest.">
+      <figcaption>Every character placed by how many links it makes against how many it receives. Red: the screen's five most linked to. Blue: its five who link out most. The dashed line is where the two would be equal; almost nobody is on it.</figcaption>
     </figure>
+
+    <p>The ten are not special cases, just the ends of the same cloud. It stretches up to 106 but stops at 28 across. The red five sit far above the diagonal, Spider-Man most of all: massively cited, barely citing. The blue five sit to the right of it, and Betsy Braddock's article works its way through most of the X-Men without many articles working their way back to her. Across all 303 the correlation between the two is only about 0.5 — high enough that being connected in one direction helps in the other, and low enough that using one as a proxy for the other would be a mistake.</p>
 
     <h3>Why the two lists barely overlap</h3>
     <p>The asymmetry comes from who is allowed to create each kind of edge. An <strong>in-link is conferred</strong>: it exists because the editors of some other article decided this character was worth mentioning. Nothing caps how many other articles can reach that decision, and the more famous a character already is, the more likely the next writer is to reach it. There are 302 other articles that could point at Spider-Man, and 106 of them do — more than a third of the category.</p>
     <p>An <strong>out-link is authored</strong>: somebody has to sit down and write it into this specific page. That is bounded by how long the article is and how many other characters its plot actually touches. Even a very long, very connected article runs out of relevant names in the twenties. So in-degree measures something like renown, while out-degree measures something much more like article length and narrative entanglement.</p>
-    <p>The scatter makes the consequence visible. Spider-Man sits far above the diagonal — massively cited, barely citing. Betsy Braddock sits far to the right of it: her article works its way through most of the X-Men without many articles working their way back to her. The correlation between the two is only about 0.5, which is high enough that being connected in one direction helps in the other, and low enough that using one as a proxy for the other would be a mistake.</p>
     <p>This is also why we would refuse to collapse the network to undirected for a question about importance. The undirected degree adds these two quantities together, and they are produced by two different mechanisms — it mixes a measure of fame with a measure of verbosity and reports the sum.</p>
   </section>
 
@@ -388,6 +371,52 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <h2>The nine heroes nobody mentions</h2>
     <p>The network breaks into 19 components: one of 277, one of 9, and seventeen of one. The 277 is unremarkable — most real networks have a giant component, and 91% is a normal share. The nine is the find of the week.</p>
 
+    <p>A component is easiest to picture as an island. Inside one, every character can be reached from every other by following links, so think of each link as a stretch of railway and every trip as a train journey. Between two islands there is no track at all, and the only way across is to fly. On the mainland the trains are quick: the average trip takes 2.67 stops, 89% of trips take three or fewer, and the longest — from Mahr Vehl to Mark Hazzard: Merc — takes six. Spider-Man is the only station from which every town on the mainland is at most three stops away.</p>
+
+    <p class="hs-howto">Type where you start and where you're going, or click one town and then another. If a track connects them, a train takes the route with the fewest stops; if they're on different islands, you fly. Drag to move around and zoom in for every town's name.</p>
+
+    <div class="im" id="islands">
+      <div class="im-screen">
+        <form class="im-bar" autocomplete="off">
+          <label class="im-field"><span>From</span><input id="im-from" list="im-towns" placeholder="a character" spellcheck="false"></label>
+          <span class="im-to-arrow" aria-hidden="true">&rarr;</span>
+          <label class="im-field"><span>To</span><input id="im-to" list="im-towns" placeholder="a character" spellcheck="false"></label>
+          <button type="submit" class="im-go">Travel</button>
+          <span class="im-extra">
+            <button type="button" class="im-chip" data-trip="random">Surprise me</button>
+            <button type="button" class="im-chip" data-trip="longest">Longest train ride</button>
+          </span>
+          <datalist id="im-towns"></datalist>
+        </form>
+        <div class="im-map">
+          <svg viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the network's 19 islands: the mainland of 277 characters, Morituri Island of 9, and 17 islets of one. The trip is described below the map."></svg>
+          <div class="im-zoom hs-zoom" role="group" aria-label="Zoom the map">
+            <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+            <button type="button" data-zoom="out" aria-label="Zoom out">&minus;</button>
+            <button type="button" data-zoom="reset" aria-label="Back to the whole map">&#x27F2;</button>
+          </div>
+          <p class="im-hint hs-hint" aria-hidden="true"></p>
+        </div>
+        <div class="im-foot">
+          <div class="im-ticket" aria-live="polite"></div>
+          <div class="im-places" role="group" aria-label="Go to an island">
+            <span>Go to</span>
+            <button type="button" class="im-chip" data-place="0">the mainland</button>
+            <button type="button" class="im-chip" data-place="1">Morituri Island</button>
+            <button type="button" class="im-chip" data-place="islets">the islets</button>
+            <button type="button" class="im-chip" data-place="all">the whole map</button>
+          </div>
+        </div>
+        <ul class="hs-keys im-keys">
+          <li><span class="im-swatch town"></span>town: a character</li>
+          <li><span class="im-swatch track"></span>track: a link, either way</li>
+          <li><span class="im-swatch land"></span>island: a component</li>
+          <li class="hs-keys-how im-keys-how"></li>
+        </ul>
+      </div>
+      <p class="hs-nojs">The map needs JavaScript.</p>
+    </div>
+
     <figure>
       <img src="figures/morituri.svg" alt="The nine-node island drawn on its own: Radian, Blackthorn, Vyking, Snapdragon, Scatterbrain, Scaredycat, Toxyn, Backhand and Shear, connected to each other in a small web.">
       <figcaption>The island, on its own. Nine characters, well connected to each other, connected to nothing else.</figcaption>
@@ -427,5 +456,7 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
 <script src="../../assets/js/flip.js"></script>
 <script src="data/hubs.js"></script>
 <script src="../../assets/js/hubscope.js"></script>
+<script src="data/islands.js"></script>
+<script src="../../assets/js/islands.js"></script>
 </body>
 </html>

@@ -422,3 +422,105 @@ svg.all-names .hs-label.more,.hs-label.more.is-on{display:inline}
   .hs-drawer,.hs-chev,.hs-empty,.hs-nb,.hs-edge,.hs-label,.hs-hubname,.hs-file,.hs-hint,.hs-guide{transition:none}
   .hs-flowline{display:none}
 }
+
+/* --- week 1: the islands map ----------------------------------------------
+   Components as islands, links as track. Same frame, zoom buttons, hint and
+   key strip as the hub screen; land scales with the zoom, while towns,
+   names, track and the route keep their size on screen. */
+.im{margin:22px 0 0;--sea:#C9D8E4;--shallow:#DCE7EE;--sand:#EFE7D3;--grass:#D9E3C6}
+.im-screen{position:relative;border:3px solid var(--ink);border-radius:12px;background:var(--card);overflow:hidden}
+.im-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;background:var(--ink);color:#fff}
+.im-field{display:flex;align-items:center;gap:7px;flex:1 1 190px;min-width:0}
+.im-field span{font-family:"Archivo Black",sans-serif;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;
+               color:rgba(255,255,255,.7)}
+.im-field input{flex:1;min-width:0;font:inherit;font-size:.92rem;padding:7px 10px;border-radius:6px;
+                border:2px solid transparent;background:#fff;color:var(--ink)}
+.im-field input:focus{outline:none;border-color:var(--red)}
+.im-to-arrow{color:rgba(255,255,255,.6);font-size:1.1rem}
+.im-go{all:unset;box-sizing:border-box;cursor:pointer;padding:8px 18px;border-radius:999px;background:var(--red);
+       color:#fff;font-family:"Archivo Black",sans-serif;font-size:.82rem}
+.im-go:hover{background:#B42222}
+.im-go:focus-visible,.im-chip:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.im-extra{display:flex;gap:6px;flex-wrap:wrap}
+.im-chip{all:unset;box-sizing:border-box;cursor:pointer;padding:5px 11px;border-radius:999px;font-size:.78rem;
+         border:1px solid rgba(255,255,255,.45);color:#fff}
+.im-chip:hover{background:rgba(255,255,255,.14)}
+
+.im-map{position:relative;height:560px;background:var(--sea)}
+.im-map svg{display:block;width:100%;height:100%;font-family:"Newsreader",Georgia,serif;cursor:grab;
+            touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none}
+.im-map.is-panning svg{cursor:grabbing}
+.im-map.is-zoomed svg{touch-action:none}
+.im-land{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.im-land.shallow{stroke:var(--shallow)}
+.im-land.sand{stroke:var(--sand)}
+.im-land.grass{stroke:var(--grass)}
+.im-tracks{fill:none;stroke:#6E7787;stroke-opacity:.3;stroke-width:calc(.8px * var(--u,1))}
+.im-towns .dot{fill:var(--ink);stroke:#fff;stroke-width:calc(.9px * var(--u,1))}
+.im-towns .dot.is-stop{fill:var(--red)}
+.im-towns .dot.is-end{fill:var(--red);stroke:var(--ink);stroke-width:calc(2px * var(--u,1))}
+.im-towns .hit{fill:transparent;cursor:pointer}
+.im-label{fill:var(--ink);paint-order:stroke;stroke:var(--sand);stroke-linejoin:round;pointer-events:none;display:none}
+svg[data-zoom="0"] .im-label.t0,
+svg[data-zoom="1"] .im-label:is(.t0,.t1),
+svg[data-zoom="2"] .im-label:is(.t0,.t1,.t2),
+svg[data-zoom="3"] .im-label:is(.t0,.t1,.t2,.t3),
+svg[data-zoom="4"] .im-label,
+.im-label.is-on,.im-label.is-hover{display:inline}
+.im-label.is-on{font-weight:600}
+svg.has-route:not([data-zoom="4"]) .im-label:not(.is-on):not(.is-hover):not(.t1){display:none}
+.im-isle{font-style:italic;letter-spacing:.14em;fill:#4F607A;paint-order:stroke;stroke:var(--sea);stroke-linejoin:round;
+         pointer-events:none}
+.im-rail-bed{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round;stroke-width:calc(7px * var(--u,1));opacity:.85}
+.im-rail{fill:none;stroke:var(--red);stroke-linecap:round;stroke-linejoin:round;stroke-width:calc(4.5px * var(--u,1));
+         stroke-dasharray:1;stroke-dashoffset:0}
+.im-rail.is-drawing{stroke-dashoffset:1}
+.im-rail-ties{fill:none;stroke:#fff;stroke-width:calc(1.4px * var(--u,1));
+              stroke-dasharray:calc(2px * var(--u,1)) calc(5px * var(--u,1))}
+.im-flight{fill:none;stroke:var(--ink);stroke-width:calc(2px * var(--u,1));stroke-linecap:round;
+           stroke-dasharray:calc(1px * var(--u,1)) calc(6px * var(--u,1))}
+.im-v .im-v-body{fill:var(--ink);stroke:#fff;stroke-width:1.2}
+.im-v.train .im-v-body{fill:var(--red)}
+.im-v .im-v-window{fill:#fff;opacity:.9}
+.im-v .im-v-lamp{fill:#FFE08A}
+.im-v.plane .im-v-body{fill:var(--ink)}
+
+.im-foot{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 24px;padding:12px 16px 14px;
+         border-top:1px solid var(--rule)}
+.im-ticket{flex:1 1 420px;min-width:0;font-size:.86rem}
+.im-ticket p{max-width:none;margin:0}
+.im-tk-note{color:var(--ink-soft);line-height:1.5}
+.im-tk-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 6px}
+.im-tk-head strong{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:.95rem}
+.im-tk-head span:last-child{color:var(--ink-soft);font-size:.82rem}
+.im-ico{display:inline-block;width:26px;height:16px;background-repeat:no-repeat;background-position:center;background-size:contain}
+.im-ico.train{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-12 -6 24 12'%3E%3Crect x='-11' y='-5' width='22' height='10' rx='4' fill='%23D22B2B'/%3E%3Crect x='-7' y='-2.4' width='11' height='4.8' rx='1.4' fill='%23fff'/%3E%3Ccircle cx='8' cy='0' r='1.6' fill='%23FFE08A'/%3E%3C/svg%3E")}
+.im-ico.plane{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-13 -10 26 20'%3E%3Cpath fill='%2316224C' d='M12 0 L4 -1.6 L-2 -9 L-5 -9 L-1.5 -1.6 L-8 -1.2 L-10.5 -4.5 L-12.5 -4.5 L-11 0 L-12.5 4.5 L-10.5 4.5 L-8 1.2 L-1.5 1.6 L-5 9 L-2 9 L4 1.6 Z'/%3E%3C/svg%3E")}
+.im-stations{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;margin:0;padding:0;max-width:none}
+.im-stations li{display:flex;align-items:center;margin:0}
+.im-stations li + li::before{content:"";width:18px;height:0;border-top:3px solid var(--red);margin:0 4px}
+.im-stations button{all:unset;cursor:pointer;padding:3px 9px;border-radius:999px;background:#EEF0EE;
+                    border:1px solid var(--rule);font-size:.8rem;color:var(--ink)}
+.im-stations li:first-child button,.im-stations li:last-child button{background:var(--ink);color:#fff;border-color:var(--ink)}
+.im-stations button:hover{border-color:var(--red)}
+.im-stations button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.im-places{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.8rem;color:var(--ink-soft)}
+.im-places .im-chip{color:var(--ink);border-color:var(--rule);background:#fff}
+.im-places .im-chip:hover{border-color:var(--red);background:#fff}
+.im-places .im-chip:focus-visible{outline-color:var(--red)}
+.im-keys{display:flex}
+.im-swatch{flex:none;display:inline-block}
+.im-swatch.town{width:8px;height:8px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px var(--rule)}
+.im-swatch.track{width:16px;height:0;border-top:1.5px solid #8A92A0}
+.im-swatch.land{width:16px;height:11px;border-radius:5px;background:var(--grass);box-shadow:0 0 0 2px var(--sand),0 0 0 4px var(--shallow)}
+
+@media (max-width:760px){
+  .im-bar{padding:10px}
+  .im-field{flex-basis:100%}
+  .im-to-arrow{display:none}
+  .im-map{height:auto;aspect-ratio:1/1}
+  .im-foot{padding:10px 12px 12px}
+}
+@media (prefers-reduced-motion: reduce){
+  .im-rail{transition:none}
+}
