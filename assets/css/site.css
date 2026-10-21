@@ -551,7 +551,7 @@ svg.has-route:not([data-zoom="4"]) .im-label:not(.is-on):not(.is-hover):not(.t1)
 /* text with a figure beside it (week 1, Morituri Island) */
 .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:32px;align-items:start;margin-top:10px}
 .split-text p:first-child{margin-top:0}
-.split-fig{margin:4px 0 0;position:sticky;top:20px}
+.split-fig{margin:4px 0 0}
 @media (max-width:860px){
   .split{grid-template-columns:minmax(0,1fr);gap:0}
   .split-fig{position:static;margin-top:24px}
