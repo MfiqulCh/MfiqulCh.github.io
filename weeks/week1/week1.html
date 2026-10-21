@@ -378,22 +378,21 @@ assert G.number_of_nodes() == 303    # fails loudly instead of silently</pre>
     <div class="im" id="islands">
       <div class="im-screen">
         <form class="im-bar" autocomplete="off">
-          <label class="im-field"><span>From</span><input id="im-from" list="im-towns" placeholder="a character" spellcheck="false"></label>
+          <div class="im-field"><label for="im-from">From</label><div class="im-pick"><input id="im-from" placeholder="a character" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="im-menu-from"><button type="button" class="im-drop" aria-label="Choose by island" aria-expanded="false" aria-controls="im-menu-from"></button><div class="im-menu" id="im-menu-from" hidden></div></div></div>
           <span class="im-to-arrow" aria-hidden="true">&rarr;</span>
-          <label class="im-field"><span>To</span><input id="im-to" list="im-towns" placeholder="a character" spellcheck="false"></label>
+          <div class="im-field"><label for="im-to">To</label><div class="im-pick"><input id="im-to" placeholder="a character" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="im-menu-to"><button type="button" class="im-drop" aria-label="Choose by island" aria-expanded="false" aria-controls="im-menu-to"></button><div class="im-menu" id="im-menu-to" hidden></div></div></div>
           <button type="submit" class="im-go">Travel</button>
           <span class="im-extra">
             <button type="button" class="im-chip" data-trip="random">Surprise me</button>
             <button type="button" class="im-chip" data-trip="longest">Longest train ride</button>
           </span>
-          <datalist id="im-towns"></datalist>
         </form>
         <div class="im-map">
           <svg viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the network's 19 islands: the mainland of 277 characters, Morituri Island of 9, and 17 islets of one. The trip is described below the map."></svg>
           <div class="im-zoom hs-zoom" role="group" aria-label="Zoom the map">
             <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
             <button type="button" data-zoom="out" aria-label="Zoom out">&minus;</button>
-            <button type="button" data-zoom="reset" aria-label="Back to the whole map">&#x27F2;</button>
+            <button type="button" data-zoom="reset" aria-label="Start the map again">&#x27F2;</button>
           </div>
           <p class="im-hint hs-hint" aria-hidden="true"></p>
         </div>

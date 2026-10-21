@@ -29,7 +29,6 @@
   var form = root.querySelector(".im-bar");
   var fromIn = root.querySelector("#im-from");
   var toIn = root.querySelector("#im-to");
-  var list = root.querySelector("#im-towns");
   var map = root.querySelector(".im-map");
   var svg = map.querySelector("svg");
   var zoomBox = map.querySelector(".im-zoom");
@@ -53,11 +52,6 @@
   function islandName(c) {
     return c === 0 ? "the mainland" : c === 1 ? "Morituri Island" : "an islet of their own";
   }
-  towns.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (t) {
-    var o = document.createElement("option");
-    o.value = t.name;
-    list.appendChild(o);
-  });
 
   /* ---------- helpers ---------- */
   function el(tag, attrs, parent) {
@@ -182,7 +176,7 @@
     var b = e.target.closest("button[data-zoom]");
     if (!b) return;
     var z = b.getAttribute("data-zoom"), r = svg.getBoundingClientRect();
-    if (z === "reset") animateView([1, 0, 0], 300);
+    if (z === "reset") resetAll();
     else animateView(zoomedAbout(k * (z === "in" ? 1.6 : 1 / 1.6), r.left + r.width / 2, r.top + r.height / 2), 220);
   });
   svg.addEventListener("wheel", function (e) {
@@ -432,6 +426,7 @@
   }
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    closeMenus();
     var a = resolve(fromIn.value), b = resolve(toIn.value);
     if (a === null || b === null) {
       var bad = a === null ? fromIn : toIn;
@@ -493,6 +488,116 @@
   /* ---------- go ---------- */
   applyWorld();
   layout();
-  say("Where to? Type two names above, or click a town to start from and another to go to. " +
-      "A train runs when a track connects them; otherwise you fly.");
+  function startNote() {
+    say("Where to? Type two names above, pick them island by island from the \u25be menus, or click a town " +
+        "to start from and another to go to. A train runs when a track connects them; otherwise you fly.");
+  }
+  // the \u27f2 button: back to the map exactly as it was when the page loaded
+  function resetAll() {
+    from = to = null;
+    fromIn.value = toIn.value = "";
+    closeMenus();
+    clearTrip();
+    startNote();
+    animateView([1, 0, 0], 300);
+  }
+
+  /* ---------- the From / To pickers: type to search, or \u25be to go island by island ---------- */
+  var ISLES = [
+    { label: "The mainland", test: function (t) { return t.comp === 0; } },
+    { label: "Morituri Island", test: function (t) { return t.comp === 1; } },
+    { label: "Islets of one", test: function (t) { return t.comp >= 2; } }
+  ];
+  var alpha = towns.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  var shortIsle = function (t) { return t.comp === 0 ? "mainland" : t.comp === 1 ? "Morituri" : "islet"; };
+  function closeMenus(except) {
+    [].forEach.call(root.querySelectorAll(".im-pick"), function (p) {
+      if (p === except) return;
+      p.querySelector(".im-menu").hidden = true;
+      p.querySelector(".im-drop").setAttribute("aria-expanded", "false");
+      p.querySelector("input").setAttribute("aria-expanded", "false");
+    });
+  }
+  function openMenu(pick, html) {
+    closeMenus(pick);
+    var m = pick.querySelector(".im-menu");
+    m.innerHTML = html;
+    m.hidden = false;
+    m.scrollTop = 0;
+    pick.querySelector(".im-drop").setAttribute("aria-expanded", "true");
+    pick.querySelector("input").setAttribute("aria-expanded", "true");
+  }
+  function islesHTML() {
+    return '<p class="im-menu-head">Choose an island</p>' + ISLES.map(function (isl, j) {
+      return '<button type="button" class="im-opt isle" data-isle="' + j + '"><span>' + isl.label +
+        '</span><small>' + towns.filter(isl.test).length + ' \u203a</small></button>';
+    }).join("");
+  }
+  function townsHTML(list, head, back) {
+    return (back ? '<button type="button" class="im-opt back" data-back="1">\u2039 All islands</button>' : "") +
+      '<p class="im-menu-head">' + head + "</p>" +
+      (list.length ? list.map(function (t) {
+        return '<button type="button" class="im-opt" data-i="' + t.i + '"><span>' + esc(t.name) + "</span>" +
+          (back ? "" : "<small>" + shortIsle(t) + "</small>") + "</button>";
+      }).join("") : '<p class="im-menu-none">No character by that name.</p>');
+  }
+  function choosePick(pick, i) {
+    var input = pick.querySelector("input");
+    input.value = towns[i].name;
+    closeMenus();
+    input.focus();
+    var a = resolve(fromIn.value), b = resolve(toIn.value);
+    if (a !== null && b !== null) { from = a; to = b; travel(); }
+    else if (input === fromIn) {
+      from = i; to = null; clearTrip(); markEnds();
+      say("From " + esc(towns[i].name) + " on " + islandName(towns[i].comp) + ". Now pick where you\u2019re going.");
+    }
+  }
+  [].forEach.call(root.querySelectorAll(".im-pick"), function (pick) {
+    var input = pick.querySelector("input"), menu = pick.querySelector(".im-menu");
+    pick.querySelector(".im-drop").addEventListener("click", function () {
+      if (!menu.hidden) { closeMenus(); return; }
+      openMenu(pick, islesHTML());
+      var f = menu.querySelector(".im-opt"); if (f) f.focus();
+    });
+    input.addEventListener("input", function () {
+      var q = input.value.trim().toLowerCase();
+      if (!q) { closeMenus(); return; }
+      var hits = alpha.filter(function (t) { return t.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 60);
+      openMenu(pick, townsHTML(hits, hits.length + (hits.length === 60 ? "+" : "") + " matching", false));
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (menu.hidden) openMenu(pick, input.value.trim() ? menu.innerHTML : islesHTML());
+        var f = menu.querySelector(".im-opt"); if (f) f.focus();
+      } else if (e.key === "Escape") closeMenus();
+    });
+    menu.addEventListener("click", function (e) {
+      e.stopPropagation();                                  // the menu redraws itself, so the outside-click check would misfire
+      var b = e.target.closest(".im-opt");
+      if (!b) return;
+      if (b.hasAttribute("data-back")) { menu.innerHTML = islesHTML(); menu.querySelector(".im-opt").focus(); return; }
+      if (b.hasAttribute("data-isle")) {
+        var isl = ISLES[Number(b.getAttribute("data-isle"))];
+        menu.innerHTML = townsHTML(alpha.filter(isl.test), isl.label, true);
+        menu.scrollTop = 0;
+        var f = menu.querySelector(".im-opt:not(.back)"); if (f) f.focus();
+        return;
+      }
+      choosePick(pick, Number(b.getAttribute("data-i")));
+    });
+    menu.addEventListener("keydown", function (e) {
+      var opts = [].slice.call(menu.querySelectorAll(".im-opt")), k = opts.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { e.preventDefault(); (opts[k + 1] || opts[k]).focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); if (k <= 0) input.focus(); else opts[k - 1].focus(); }
+      else if (e.key === "Escape") { closeMenus(); input.focus(); }
+      else if (e.key === "ArrowLeft" && menu.querySelector("[data-back]")) menu.querySelector("[data-back]").click();
+    });
+  });
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest || !e.target.closest(".im-pick")) closeMenus();
+  });
+
+  startNote();
 })();
